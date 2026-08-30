@@ -6,6 +6,7 @@
       <router-link to="/search">Buscar</router-link>
       <router-link to="/upload">Publicar</router-link>
       <router-link to="/profile">Perfil</router-link>
+      <router-link to="/register">Criar Conta</router-link>
       <router-link to="/login">Entrar</router-link>
     </nav>
   </header>
