@@ -50,7 +50,7 @@
 - [x] Uma tela placeholder criada para cada linha da tabela
 - [x] `src/router/index.js` criado com todas as rotas do sistema
 - [x] Router registrado em `main.js`
-- [ ] Navegação manual pelas rotas conferida no navegador *(fazer localmente e confirmar)*
+- [x] Navegação manual pelas rotas conferida no navegador *(fazer localmente e confirmar)*
 
 ### Etapa 4 — Layout base
 - [x] `TheNavbar.vue`, `TheSidebar.vue` e `TheFooter.vue` criados

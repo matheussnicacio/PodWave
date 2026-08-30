@@ -15,10 +15,10 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "express-validator": "^7.2.1",
+    "express-validator": "^7.3.2",
     "morgan": "^1.11.0",
-    "mysql2": "^3.11.5",
-    "sequelize": "^6.37.5"
+    "mysql2": "^3.24.2",
+    "sequelize": "^6.37.8"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
