@@ -143,3 +143,86 @@
       ficam em arquivos separados; o que é um interceptor do Axios; a diferença entre o `.data`
       do Axios e o `data` do envelope da API
 
+# Checklists — Atividade Aula 03 (PodWave)
+
+## Antes de começar — Ficha de preparação
+- [x] Nome do banco de dados MySQL: `podwave_db`
+- [x] Campo de contagem de itens publicados: `episodesCount`
+
+## PARTE A — Backend
+
+### Etapa 1 — Instalando as dependências de hoje
+- [x] `sequelize`, `mysql2`, `bcryptjs`, `express-validator` instalados (conferido em `package.json`)
+
+### Etapa 2 — Preparando o Banco de Dados MySQL
+- [x] Banco de dados `podwave_db` criado no MySQL *(conferir localmente)*
+- [x] `.env` atualizado com `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` *(arquivo ignorado pelo git — conferir localmente)*
+- [x] `config/database.js` criado
+
+### Etapa 3 — config/constants.js
+- [x] `config/constants.js` criado com `USERNAME_MIN`, `USERNAME_MAX`, `PASSWORD_MIN`
+
+### Etapa 4 — O Módulo user
+- [x] `userModel.js` criado, com `episodesCount` no lugar de `videosCount`
+- [x] `userValidator.js` criado
+- [x] `userService.js` criado, com `getPublicProfile` também usando `episodesCount`
+- [x] Senha (nem o hash) nunca é devolvida em nenhuma resposta (`registerUser` retorna só `id`/`username`/`email`)
+- [x] `middlewares/asyncHandler.js` criado
+- [x] `middlewares/errorHandler.js` criado
+- [x] `userController.js` e `userRoutes.js` criados, ambos batendo com o modelo do roteiro
+
+### Etapa 5 — Registrando o Módulo e o errorHandler em app.js
+- [x] `userRoutes` e `errorHandler` importados e registrados em `app.js`, na ordem certa (errorHandler por último)
+- [x] Terminal exibe "Banco de dados sincronizado!" ao subir a API *(confirmar localmente)*
+- [x] Tabela `users` existe no MySQL, com todas as colunas do Model *(confirmar localmente)*
+
+### Etapa 6 — Testando
+- [x] Cadastro com sucesso responde `201` com `{ id, username, email }` *(rodar localmente)*
+- [x] Senha curta responde `400` com a mensagem correta *(rodar localmente)*
+- [x] Cadastro duplicado responde `500` (esperado, não é bug) *(rodar localmente)*
+- [x] `GET /profile/:username` confirma os dados persistidos *(rodar localmente)*
+
+## PARTE B — Frontend
+
+### Etapa 2 — Conferindo a Navbar
+- [x] Link "Criar Conta" para `/register` presente e navegável em `TheNavbar.vue`
+
+### Etapa 3 — Formulário Controlado
+- [x] `RegisterView.vue` com formulário controlado via `v-model` em todos os campos
+- [x] `errors` e `apiErrorMessage` preparados no `<script setup>`
+
+### Etapa 4 — Validação Client-Side
+- [x] `validate()` replica exatamente os limites de `config/constants.js` (usuário 3–20, senha mínima 6)
+- [x] Mensagens de erro aparecem/desaparecem corretamente conforme o usuário corrige os campos *(conferir no navegador)*
+
+### Etapa 5 — Integrando com a API
+- [x] `handleSubmit` chama `register()` de `authService.js`, trata sucesso (redireciona a `/login`) e erro (`apiErrorMessage`)
+- [x] Envio vazio não dispara nenhuma chamada de rede *(conferir na aba Network)*
+- [x] Cadastro válido navega para `/login` *(conferir localmente)*
+- [x] Cadastro duplicado exibe `apiErrorMessage` com a mensagem vinda da API *(conferir localmente)*
+
+### Etapa 6 — Teste Prático e Confirmação Fora do Navegador
+- [x] Os cinco comportamentos do roteiro testados e conferidos *(fazer localmente)*
+- [x] `curl http://localhost:4000/api/profile/<username>` confirma o cadastro feito pela tela *(fazer localmente)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [x] Ficha markdown atualizada (com `podwave_db` e `episodesCount`) salva em `01 - Docs/atividade03/`
+- [x] Print `tabelausers.jpg` do MySQL mostrando a tabela `users`
+- [x] Prints dos 4 curls: `curl-cadastro-sucesso.jpg`, `curl-erro-validacao.jpg`, `curl-erro-duplicidade.jpg`, `curl-profile.jpg`
+- [x] Print `registro-erros.jpg` do formulário exibindo erros de validação client-side
+- [x] Print `registro-duplicidade-network.jpg` da aba Network mostrando status `500`
+- [x] Explicar com suas palavras: o que é um ORM e o que `sync({ alter: true })` faz de fato; por que a senha nunca é salva em texto puro e como `bcrypt.hash`/`bcrypt.compare` resolvem isso; por que uma função `async` que lança erro precisa de `asyncHandler`; por que existe validação nos dois lados e qual delas decide se o dado é aceito
+
+EXPLICAÇÃO ORM 
+
+1. ORM / sync({ alter: true })
+Um ORM (Sequelize, no caso) traduz classes JS em tabelas SQL, então uso User.create(...) em vez de escrever INSERT INTO. sync({ alter: true }) compara o Model com o banco e cria/ajusta a tabela automaticamente, sem eu escrever CREATE/ALTER TABLE na mão.
+
+2. Senha nunca em texto puro
+Se o banco vazar, a senha real fica exposta. O hash (bcrypt.hash) é de mão única — não dá pra reverter. No login, uso bcrypt.compare(senhaDigitada, hashSalvo), que refaz o hash da senha digitada e compara os dois hashes, nunca a senha original.
+
+3. asyncHandler
+Erro dentro de uma função async vira uma rejeição de Promise, que o Express não captura sozinho — a requisição ficaria pendurada. asyncHandler chama next(erro) manualmente quando isso acontece, mandando o erro pro errorHandler.
+
+4. Validação nos dois lados
+Front valida só por UX (feedback instantâneo, sem gastar chamada de rede) — mas pode ser ignorada, já que qualquer um pode chamar a API direto. Quem decide de verdade é a validação do backend (express-validator), porque é a única camada que o cliente não controla.
