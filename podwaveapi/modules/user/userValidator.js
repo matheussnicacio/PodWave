@@ -39,3 +39,14 @@ exports.registerValidator = [
     .trim(),
   validate
 ];
+
+exports.loginValidator = [
+  body('email')
+    .isEmail()
+    .withMessage('Por favor, insira um e-mail válido.')
+    .normalizeEmail(),
+  body('password')
+    .notEmpty()
+    .withMessage('A senha é obrigatória.'),
+  validate
+];

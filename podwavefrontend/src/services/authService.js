@@ -11,3 +11,7 @@ export function login(payload) {
 export function logout() {
   return api.post('/logout')
 }
+
+export function getMyProfile() {
+  return api.get('/profile/me')
+}

@@ -226,3 +226,100 @@ Erro dentro de uma função async vira uma rejeição de Promise, que o Express 
 
 4. Validação nos dois lados
 Front valida só por UX (feedback instantâneo, sem gastar chamada de rede) — mas pode ser ignorada, já que qualquer um pode chamar a API direto. Quem decide de verdade é a validação do backend (express-validator), porque é a única camada que o cliente não controla.
+# Checklists — Atividade Aula 04 (PodWave)
+
+## Antes de começar — Ficha de preparação
+- [x] Cor de marca do projeto (hex): `#3D5AFE` (ver `atividade04/ficha.md`)
+
+## PARTE A — Backend: Login, JWT e Middleware de Autenticação
+
+### Checklist das tarefas
+- [x] `jsonwebtoken` instalado
+- [x] `.env` atualizado com `JWT_SECRET` e `JWT_EXPIRES_IN` *(arquivo ignorado pelo git — conferir localmente; ver `atividade04/LEIA-ME.md`)*
+- [x] `config/jwt.js` criado, com carregamento/validação do `.env`, geração (`generateToken`) e verificação (`verifyToken`) de tokens
+- [x] `middlewares/auth.js` criado (`isAuthenticated`)
+- [x] `userService.js` atualizado com `loginUser` e `getUserProfile`
+- [x] `userValidator.js` atualizado com `loginValidator`
+- [x] `userController.js` atualizado com `login`, `logout`, `getMyProfile`
+- [x] `userRoutes.js` atualizado, com `/profile/me` antes de `/profile/:username`
+
+### Checklist dos testes (todos rodados aqui, com MySQL/MariaDB local e API real)
+- [x] Login com sucesso devolve `token` e `user` (incluindo `isAdmin`)
+- [x] Senha errada devolve `500` com mensagem genérica (`E-mail ou senha inválidos.`)
+- [x] `GET /profile/me` sem token devolve `401`
+- [x] `GET /profile/me` com token válido devolve os dados do usuário
+- [x] `GET /profile/me` com token inválido devolve `401`
+
+## PARTE B — Frontend: Login, Pinia e Proteção de Rotas
+
+### Checklist das tarefas
+- [x] `createPinia()` registrado em `main.js`, antes de `.use(router)`
+- [x] `stores/auth.js` criado/atualizado, com persistência via `localStorage` (`podwave_token` / `podwave_user`)
+- [x] Interceptor de requisição anexando `Authorization` quando existe token (`services/api.js`)
+- [x] Interceptor de resposta limpando a sessão e redirecionando em qualquer `401`
+- [x] Os nomes de chave batem exatamente entre `services/api.js` e `stores/auth.js` (compartilhados via `utils/storageKeys.js`)
+- [x] Bootstrap 5 (CSS + JS bundle) incluído via CDN em `index.html`
+- [x] `assets/main.css` criado, com a cor de marca (`#3D5AFE`) sobrescrevendo as variáveis `--bs-primary` do Bootstrap
+- [x] Telas novas (`LoginView.vue`, `MyProfileView.vue`) usam classes Bootstrap; telas das Aulas 01–03 permanecem como estavam
+- [x] Tela de Login funcional, chamando `authStore.login(...)`
+- [x] Destino padrão pós-login ajustado para a rota `feed` (rota principal do PodWave)
+- [x] Guarda de rota (`router/index.js`, `router.beforeEach`) bloqueando acesso direto a rotas com `requiresAuth: true`
+- [x] `useAuthStore()` chamado dentro do callback do guarda, não no topo do arquivo
+- [x] Navbar (`TheNavbar.vue`) mostra links diferentes conforme `authStore.isAuthenticated`
+- [x] Logout (`authStore.logout()`) limpa a sessão e redireciona ao Login
+
+### Checklist de testes
+- [x] `npm run build` do front concluído sem erros neste ambiente (validação de sintaxe/imports/circularidade)
+- [x] Login funcional testado end-to-end aqui via Vite dev server + API real → sessão persistida corretamente
+- [ ] Login funcional → redireciona à tela principal do seu projeto *(confirmar visualmente no navegador)*
+- [ ] F5 na página logado → sessão persiste (confira `localStorage` no DevTools) *(fazer localmente)*
+- [ ] Logout → tentar acessar rota protegida pela URL deve redirecionar ao Login com `?redirect=...` *(fazer localmente)*
+- [ ] Login a partir dessa tela redirecionada → deve voltar exatamente para a rota original *(fazer localmente)*
+- [ ] Editar o token no `localStorage` manualmente e recarregar rota protegida → redireciona ao Login (prova do interceptor de 401) *(fazer localmente)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [x] Ficha em markdown com a cor de marca salva em `atividade04/ficha.md`
+- [ ] Prints de cada `curl` da Parte A, em `.jpg` (comandos prontos em `atividade04/LEIA-ME.md`)
+- [ ] Print `login-estilizado.jpg` da tela de Login com Bootstrap/cor de marca
+- [ ] Print do redirecionamento ao Login com `?redirect=...` na URL
+- [ ] Print do Console mostrando `Perfil autenticado OK:`
+- [ ] Print do logout automático após editar o token manualmente
+- [ ] Explicar com suas palavras: o que é um JWT (as três partes; o que é assinado vs. só codificado) e por que o payload nunca deve conter dados sensíveis; por que "logout" num sistema JWT stateless não revoga nada no servidor — e o que mudaria isso; por que ler o token do `localStorage` direto no interceptor do Axios evita dependência circular entre arquivos
+
+EXPLICAÇÃO — JWT, Logout stateless e dependência circular
+
+**1. O que é um JWT**
+Um JWT tem três partes separadas por ponto: `header.payload.signature`. O
+header e o payload são só codificados em Base64 (qualquer um decodifica sem
+precisar de chave nenhuma — dá pra colar em jwt.io e ler). A signature é a
+única parte realmente *assinada*: é um hash do header+payload usando o
+`JWT_SECRET`, que só o servidor conhece. É essa assinatura que garante que
+ninguém alterou o conteúdo do token depois que ele foi emitido — se alguém
+editar o payload, a assinatura não bate mais na verificação. Por isso o
+payload nunca pode conter dado sensível (senha, dados bancários etc.):
+"assinado" não é "secreto", é só "à prova de adulteração".
+
+**2. Por que logout não revoga nada num sistema stateless**
+A API não guarda nenhuma tabela de "sessões ativas" — cada requisição prova
+quem é o usuário só com o token que ela mesma carrega (por isso "stateless").
+O endpoint `POST /logout` não tem nada pra apagar no servidor: o token
+continua matematicamente válido até a data de expiração (`JWT_EXPIRES_IN`),
+mesmo que o usuário "saia". Quem realmente encerra a sessão é o front-end,
+descartando o token do `localStorage`. Pra revogar de verdade no servidor,
+seria preciso guardar estado (ex.: uma tabela/lista de tokens invalidados —
+uma "blocklist" — consultada em `isAuthenticated` a cada requisição, ou
+tokens de vida bem curta trocados por um refresh token que pode ser
+revogado), o que tira a API da categoria "stateless".
+
+**3. Por que ler o token do localStorage direto no interceptor evita dependência circular**
+A store de autenticação (`stores/auth.js`) importa o `authService.js` para
+chamar `login`/`logout`, e o `authService.js` importa `api.js` (a instância
+do Axios) pra montar as chamadas. Se `api.js` também importasse a store pra
+ler `useAuthStore().token`, se fecharia um ciclo: `auth.js` → `authService.js`
+→ `api.js` → `auth.js`. Módulos em ciclo dependem uns dos outros pra
+terminar de inicializar, e isso pode fazer um dos dois ser importado "pela
+metade" (com `undefined` no lugar do que ainda não foi exportado), quebrando
+de um jeito difícil de depurar. Lendo o token direto do `localStorage`
+dentro do interceptor, `api.js` não precisa importar nada do Pinia — só um
+módulo neutro (`utils/storageKeys.js`) que não importa nada, quebrando o
+ciclo.

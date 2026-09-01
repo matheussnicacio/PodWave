@@ -1,0 +1,53 @@
+/*
+  Identidade visual mínima do PodWave.
+  Cor de marca: #3D5AFE (azul).
+
+  Sobrescreve as variáveis de cor "primary" do Bootstrap 5 para que
+  botões, links e elementos com classes .btn-primary / .text-primary /
+  .bg-primary etc. já usem a cor da marca sem precisar de CSS customizado
+  em cada tela.
+*/
+
+:root {
+  --podwave-brand: #3d5afe;
+  --podwave-brand-hover: #3049d1;
+  --podwave-brand-soft: rgba(61, 90, 254, 0.12);
+
+  --bs-primary: #3d5afe;
+  --bs-primary-rgb: 61, 90, 254;
+  --bs-link-color: #3d5afe;
+  --bs-link-color-rgb: 61, 90, 254;
+  --bs-link-hover-color: #3049d1;
+  --bs-link-hover-color-rgb: 48, 73, 209;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--podwave-brand);
+  --bs-btn-border-color: var(--podwave-brand);
+  --bs-btn-hover-bg: var(--podwave-brand-hover);
+  --bs-btn-hover-border-color: var(--podwave-brand-hover);
+  --bs-btn-active-bg: var(--podwave-brand-hover);
+  --bs-btn-active-border-color: var(--podwave-brand-hover);
+}
+
+.text-primary {
+  color: var(--podwave-brand) !important;
+}
+
+.podwave-brand-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background-color: var(--podwave-brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.podwave-auth-card {
+  border: none;
+  border-top: 4px solid var(--podwave-brand);
+}

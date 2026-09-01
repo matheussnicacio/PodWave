@@ -41,4 +41,41 @@ async function getPublicProfile(username) {
   return user;
 }
 
-module.exports = { registerUser, getPublicProfile };
+async function loginUser(email, password) {
+  const user = await User.findOne({ where: { email } });
+
+  if (!user) {
+    // Mensagem genérica de propósito: não revela se o e-mail existe ou não.
+    throw new Error('E-mail ou senha inválidos.');
+  }
+
+  const passwordMatches = await bcrypt.compare(password, user.password);
+
+  if (!passwordMatches) {
+    throw new Error('E-mail ou senha inválidos.');
+  }
+
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    fullName: user.fullName,
+    isAdmin: user.isAdmin
+  };
+}
+
+async function getUserProfile(userId) {
+  const user = await User.findByPk(userId, {
+    attributes: ['id', 'username', 'email', 'fullName', 'bio', 'profilePicture', 'followersCount', 'followingCount', 'episodesCount', 'isAdmin']
+  });
+
+  if (!user) {
+    const error = new Error('Usuário não encontrado.');
+    error.status = 404;
+    throw error;
+  }
+
+  return user;
+}
+
+module.exports = { registerUser, getPublicProfile, loginUser, getUserProfile };
