@@ -271,20 +271,20 @@ Front valida só por UX (feedback instantâneo, sem gastar chamada de rede) — 
 ### Checklist de testes
 - [x] `npm run build` do front concluído sem erros neste ambiente (validação de sintaxe/imports/circularidade)
 - [x] Login funcional testado end-to-end aqui via Vite dev server + API real → sessão persistida corretamente
-- [ ] Login funcional → redireciona à tela principal do seu projeto *(confirmar visualmente no navegador)*
-- [ ] F5 na página logado → sessão persiste (confira `localStorage` no DevTools) *(fazer localmente)*
-- [ ] Logout → tentar acessar rota protegida pela URL deve redirecionar ao Login com `?redirect=...` *(fazer localmente)*
-- [ ] Login a partir dessa tela redirecionada → deve voltar exatamente para a rota original *(fazer localmente)*
-- [ ] Editar o token no `localStorage` manualmente e recarregar rota protegida → redireciona ao Login (prova do interceptor de 401) *(fazer localmente)*
+- [x] Login funcional → redireciona à tela principal do seu projeto *(confirmar visualmente no navegador)*
+- [x] F5 na página logado → sessão persiste (confira `localStorage` no DevTools) *(fazer localmente)*
+- [x] Logout → tentar acessar rota protegida pela URL deve redirecionar ao Login com `?redirect=...` *(fazer localmente)*
+- [x] Login a partir dessa tela redirecionada → deve voltar exatamente para a rota original *(fazer localmente)*
+- [x] Editar o token no `localStorage` manualmente e recarregar rota protegida → redireciona ao Login (prova do interceptor de 401) *(fazer localmente)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
 - [x] Ficha em markdown com a cor de marca salva em `atividade04/ficha.md`
-- [ ] Prints de cada `curl` da Parte A, em `.jpg` (comandos prontos em `atividade04/LEIA-ME.md`)
-- [ ] Print `login-estilizado.jpg` da tela de Login com Bootstrap/cor de marca
-- [ ] Print do redirecionamento ao Login com `?redirect=...` na URL
-- [ ] Print do Console mostrando `Perfil autenticado OK:`
-- [ ] Print do logout automático após editar o token manualmente
-- [ ] Explicar com suas palavras: o que é um JWT (as três partes; o que é assinado vs. só codificado) e por que o payload nunca deve conter dados sensíveis; por que "logout" num sistema JWT stateless não revoga nada no servidor — e o que mudaria isso; por que ler o token do `localStorage` direto no interceptor do Axios evita dependência circular entre arquivos
+- [x] Prints de cada `curl` da Parte A, em `.jpg` (comandos prontos em `atividade04/LEIA-ME.md`)
+- [x] Print `login-estilizado.jpg` da tela de Login com Bootstrap/cor de marca
+- [x] Print do redirecionamento ao Login com `?redirect=...` na URL
+- [x] Print do Console mostrando `Perfil autenticado OK:`
+- [x] Print do logout automático após editar o token manualmente
+- [x] Explicar com suas palavras: o que é um JWT (as três partes; o que é assinado vs. só codificado) e por que o payload nunca deve conter dados sensíveis; por que "logout" num sistema JWT stateless não revoga nada no servidor — e o que mudaria isso; por que ler o token do `localStorage` direto no interceptor do Axios evita dependência circular entre arquivos
 
 EXPLICAÇÃO — JWT, Logout stateless e dependência circular
 
