@@ -36,6 +36,15 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem(USER_STORAGE_KEY)
     },
 
+    // Atualiza só os dados do usuário (mantém o token intacto). Usado depois
+    // de um PUT /profile/me bem-sucedido, para que o resto da aplicação
+    // (Navbar, guardas de rota, etc.) enxergue o nome/bio/foto novos sem
+    // precisar de F5 ou de um novo login.
+    updateUser(user) {
+      this.user = user
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+    },
+
     async login(credentials) {
       const response = await loginRequest(credentials)
       const { token, user } = response.data

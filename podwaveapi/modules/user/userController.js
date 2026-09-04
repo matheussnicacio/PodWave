@@ -39,3 +39,19 @@ exports.getMyProfile = async (req, res) => {
   const user = await userService.getUserProfile(req.user.id);
   return success(res, user);
 };
+
+exports.updateProfile = async (req, res) => {
+  const { fullName, bio } = req.body;
+  // req.file só existe quando o campo "profilePicture" veio preenchido no
+  // multipart/form-data (o multer.single('profilePicture') que popula
+  // isso). Sem foto nova, req.file é undefined e a foto atual é mantida.
+  const newProfilePictureFilename = req.file ? req.file.filename : undefined;
+
+  const updatedUser = await userService.updateUserProfile(req.user.id, {
+    fullName,
+    bio,
+    newProfilePictureFilename
+  });
+
+  return success(res, updatedUser, 'Perfil atualizado com sucesso.');
+};

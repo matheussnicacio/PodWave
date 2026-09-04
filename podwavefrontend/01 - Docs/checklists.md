@@ -323,3 +323,46 @@ de um jeito difícil de depurar. Lendo o token direto do `localStorage`
 dentro do interceptor, `api.js` não precisa importar nada do Pinia — só um
 módulo neutro (`utils/storageKeys.js`) que não importa nada, quebrando o
 ciclo.
+
+# Checklists — Atividade Aula 05 (PodWave)
+
+## PARTE A — Backend: Upload de Arquivos com Multer
+
+### Checklist das tarefas
+- [x] Pasta `public/uploads/profiles/` criada, com um `default-profile.png` dentro
+- [x] `multer` instalado
+- [x] `BIO_MAX: 255` adicionado a `config/constants.js` (dentro de `VALIDATION`, específico para o campo `bio`, que é `STRING(255)` no `userModel.js` — não reaproveita `USERNAME_MAX` nem nenhuma outra constante pensada para outro campo)
+- [x] `middlewares/profileMulter.js` criado (`diskStorage`, nomes únicos por upload, `fileFilter` restringindo a `image/jpeg`, `image/png`, `image/webp`, limite de 5MB)
+- [x] `require('path')` e a linha de `express.static('/uploads', ...)` adicionados em `app.js`, antes das rotas da API
+- [x] `profileUpdateValidator` (`userValidator.js`), `updateUserProfile` (`userService.js`), `updateProfile` (`userController.js`) e a rota `PUT /profile/me` (`userRoutes.js`) criados, na ordem `isAuthenticated → profileMulter.single('profilePicture') → profileUpdateValidator → controller`
+- [x] `errorHandler.js` ajustado para devolver `400` (em vez do `500` genérico) quando o erro vem do multer (`err.name === 'MulterError'`, ex.: arquivo maior que 5MB)
+
+### Checklist dos testes
+- [x] Testado aqui, sem banco de dados real: API sobe sem erro, `GET /uploads/profiles/default-profile.png` responde `200`, `PUT /profile/me` sem token responde `401` (guarda de rota funcionando antes mesmo de chegar no multer/validador)
+- [ ] Atualização sem foto funciona, mantendo a foto atual *(precisa do seu MySQL local — não há banco disponível neste ambiente)*
+- [ ] Atualização com foto nova funciona, e a foto antiga (se não era a padrão) é removida do disco *(idem)*
+- [ ] Bio acima de 255 caracteres é recusada com `400` *(idem)*
+
+## PARTE B — Frontend: Formulário Multipart e a Tela de Meu Perfil
+
+### Checklist desta etapa
+- [x] Link para a tela de perfil visível na Navbar, só quando logado — **já existia** desde a Aula 04 (`TheNavbar.vue`, rota `/profile` com `meta: { requiresAuth: true }`), conferido e mantido sem alterações
+- [x] `.env` atualizado com `VITE_UPLOADS_URL` (além do `VITE_API_URL` já existente), `utils/media.js` criado — `getProfilePictureUrl(filename)` monta a URL pública da foto a partir da raiz do servidor (não de `VITE_API_URL`, que tem o sufixo `/api` e apontaria para o lugar errado)
+- [x] `updateProfile(formData)` adicionada em `authService.js` — a única chamada de toda a aplicação a sobrescrever o `Content-Type` padrão (`multipart/form-data` em vez do `application/json` configurado em `api.js`)
+- [x] `stores/auth.js`: ação `updateUser(user)` adicionada, para manter a sessão persistida em sincronia depois de um `PUT /profile/me` bem-sucedido
+- [x] `MyProfileView.vue` reconstruída: carrega dados reais (`GET /profile/me`) ao montar, formulário de nome/bio com validação (nome obrigatório, bio até 255 caracteres, contador de caracteres), prévia de imagem local via `URL.createObjectURL` (sem chamada de rede), envio via `FormData` + `updateProfile(formData)`
+
+### Checklist dos testes
+- [x] `npm run build` concluído sem erros neste ambiente (validação de sintaxe/imports)
+- [ ] Tela carrega os dados reais do usuário ao montar *(confirmar visualmente, navegando a partir da LandingPage)*
+- [ ] Selecionar uma foto atualiza a prévia instantaneamente, sem chamada de rede *(conferir na aba Network)*
+- [ ] Salvar funciona, com e sem trocar de foto *(idem)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [ ] Rodar a API com seu MySQL/MariaDB local e confirmar de ponta a ponta os 4 testes da Parte A (sem banco de dados disponível neste ambiente, não dá pra gerar usuário/token reais)
+- [ ] Print `perfil-carregado.jpg` — tela de Meu Perfil carregada com dados reais
+- [ ] Print `preview-local.jpg` — prévia de imagem antes do envio, com a aba Network sem nenhuma chamada nova
+- [ ] Print `uploadmultipart.jpg` — aba Network mostrando `Content-Type: multipart/form-data; boundary=...` da requisição de salvamento
+- [ ] Print `navbar-link-perfil.jpg` — Navbar mostrando o link "Perfil" visível quando logado
+- [ ] Prints de cada `curl` da Etapa 7 (Parte A) — comandos prontos em `atividade05/LEIA-ME.md`
+- [ ] Explicar com suas palavras: o que é `multipart/form-data` e por que um arquivo não cabe, na prática, dentro de um corpo JSON; por que `api.js` não muda nesta aula, mesmo upload de arquivo exigindo um `Content-Type` diferente do padrão configurado nele; por que validar um campo contra uma constante "de nome parecido, mas pensada para outra coisa" é um erro sutil — e como perceber isso antes de acontecer
