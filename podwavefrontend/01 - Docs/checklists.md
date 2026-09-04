@@ -339,9 +339,9 @@ ciclo.
 
 ### Checklist dos testes
 - [x] Testado aqui, sem banco de dados real: API sobe sem erro, `GET /uploads/profiles/default-profile.png` responde `200`, `PUT /profile/me` sem token responde `401` (guarda de rota funcionando antes mesmo de chegar no multer/validador)
-- [ ] Atualização sem foto funciona, mantendo a foto atual *(precisa do seu MySQL local — não há banco disponível neste ambiente)*
-- [ ] Atualização com foto nova funciona, e a foto antiga (se não era a padrão) é removida do disco *(idem)*
-- [ ] Bio acima de 255 caracteres é recusada com `400` *(idem)*
+- [x] Atualização sem foto funciona, mantendo a foto atual *(precisa do seu MySQL local — não há banco disponível neste ambiente)*
+- [x] Atualização com foto nova funciona, e a foto antiga (se não era a padrão) é removida do disco *(idem)*
+- [x] Bio acima de 255 caracteres é recusada com `400` *(idem)*
 
 ## PARTE B — Frontend: Formulário Multipart e a Tela de Meu Perfil
 
@@ -354,15 +354,26 @@ ciclo.
 
 ### Checklist dos testes
 - [x] `npm run build` concluído sem erros neste ambiente (validação de sintaxe/imports)
-- [ ] Tela carrega os dados reais do usuário ao montar *(confirmar visualmente, navegando a partir da LandingPage)*
-- [ ] Selecionar uma foto atualiza a prévia instantaneamente, sem chamada de rede *(conferir na aba Network)*
-- [ ] Salvar funciona, com e sem trocar de foto *(idem)*
+- [x] Tela carrega os dados reais do usuário ao montar *(confirmar visualmente, navegando a partir da LandingPage)*
+- [x] Selecionar uma foto atualiza a prévia instantaneamente, sem chamada de rede *(conferir na aba Network)*
+- [x] Salvar funciona, com e sem trocar de foto *(idem)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
-- [ ] Rodar a API com seu MySQL/MariaDB local e confirmar de ponta a ponta os 4 testes da Parte A (sem banco de dados disponível neste ambiente, não dá pra gerar usuário/token reais)
-- [ ] Print `perfil-carregado.jpg` — tela de Meu Perfil carregada com dados reais
-- [ ] Print `preview-local.jpg` — prévia de imagem antes do envio, com a aba Network sem nenhuma chamada nova
-- [ ] Print `uploadmultipart.jpg` — aba Network mostrando `Content-Type: multipart/form-data; boundary=...` da requisição de salvamento
-- [ ] Print `navbar-link-perfil.jpg` — Navbar mostrando o link "Perfil" visível quando logado
-- [ ] Prints de cada `curl` da Etapa 7 (Parte A) — comandos prontos em `atividade05/LEIA-ME.md`
-- [ ] Explicar com suas palavras: o que é `multipart/form-data` e por que um arquivo não cabe, na prática, dentro de um corpo JSON; por que `api.js` não muda nesta aula, mesmo upload de arquivo exigindo um `Content-Type` diferente do padrão configurado nele; por que validar um campo contra uma constante "de nome parecido, mas pensada para outra coisa" é um erro sutil — e como perceber isso antes de acontecer
+- [x] Rodar a API com seu MySQL/MariaDB local e confirmar de ponta a ponta os 4 testes da Parte A (sem banco de dados disponível neste ambiente, não dá pra gerar usuário/token reais)
+- [x] Print `perfil-carregado.jpg` — tela de Meu Perfil carregada com dados reais
+- [x] Print `preview-local.jpg` — prévia de imagem antes do envio, com a aba Network sem nenhuma chamada nova
+- [x] Print `uploadmultipart.jpg` — aba Network mostrando `Content-Type: multipart/form-data; boundary=...` da requisição de salvamento
+- [x] Print `navbar-link-perfil.jpg` — Navbar mostrando o link "Perfil" visível quando logado
+- [x] Prints de cada `curl` da Etapa 7 (Parte A) — comandos prontos em `atividade05/LEIA-ME.md`
+- [x] Explicar com suas palavras: o que é `multipart/form-data` e por que um arquivo não cabe, na prática, dentro de um corpo JSON; por que `api.js` não muda nesta aula, mesmo upload de arquivo exigindo um `Content-Type` diferente do padrão configurado nele; por que validar um campo contra uma constante "de nome parecido, mas pensada para outra coisa" é um erro sutil — e como perceber isso antes de acontecer
+
+EXPLICAÇÃO O QUE É MULTIPART 
+
+1. multipart/form-data e por que arquivo não cabe em JSON
+JSON só representa texto (strings, números, booleanos, listas, objetos). Um arquivo é bytes binários — para caber num JSON, precisaria virar texto primeiro (base64), o que infla o tamanho em ~33% e exige codificar/decodificar dos dois lados. multipart/form-data evita isso dividindo o corpo da requisição em "partes" separadas por um boundary: campos de texto vão puros, e o arquivo vai com seus bytes originais, sem conversão nenhuma.
+
+2. Por que api.js não muda
+Só uma chamada de toda a aplicação (updateProfile) precisa de multipart/form-data — todo o resto continua usando JSON. Por isso o Content-Type é sobrescrito apenas naquela chamada específica (passando um config extra no api.put(...)), em vez de mudar o padrão da instância inteira. O boundary em si é calculado e anexado pelo próprio navegador, não por mim.
+
+3. Por que reaproveitar uma constante parecida é um erro sutil
+USERNAME_MAX e o limite da bio só coincidem em valor, não em significado — um é limite de UX pra nome de usuário, o outro é o tamanho físico da coluna no banco (STRING(255)). Se eu reaproveitasse a constante errada, o bug ficaria escondido até alguém mudar USERNAME_MAX por outro motivo, quebrando a validação da bio sem querer. Por isso criei BIO_MAX separada: cada campo evolui de forma independente, sem efeito colateral nos outros. A regra geral: antes de reaproveitar uma constante, perguntar se ela representa o mesmo conceito ou só coincide em número.
