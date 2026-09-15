@@ -2,11 +2,14 @@
 import { onMounted, reactive, ref } from 'vue'
 import { getMyProfile, updateProfile } from '../../services/authService'
 import { getProfilePictureUrl } from '../../utils/media'
-import { useAuthStore } from '../../stores/auth'
+import { useAuth } from '../../composables/useAuth'
+import BaseInput from '../../components/base/BaseInput.vue'
+import BaseButton from '../../components/base/BaseButton.vue'
+import FormCard from '../../components/base/FormCard.vue'
 
 const BIO_MAX = 255
 
-const authStore = useAuthStore()
+const { updateUser } = useAuth()
 
 const isLoading = ref(true)
 const loadErrorMessage = ref('')
@@ -134,7 +137,7 @@ async function handleSubmit() {
       previewUrl.value = ''
     }
 
-    authStore.updateUser({ ...authStore.user, ...updatedProfile })
+    updateUser(updatedProfile)
     successMessage.value = response.message || 'Perfil atualizado com sucesso.'
   } catch (error) {
     apiErrorMessage.value = error.message
@@ -145,79 +148,59 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="container py-4">
-    <div class="row justify-content-center">
-      <div class="col-12 col-md-8 col-lg-6">
-        <h1 class="h3 mb-4">Meu Perfil</h1>
+  <div v-if="isLoading" class="container py-5 text-center text-secondary">Carregando...</div>
 
-        <p v-if="isLoading" class="text-secondary">Carregando...</p>
-
-        <div v-else-if="loadErrorMessage" class="alert alert-danger">{{ loadErrorMessage }}</div>
-
-        <div v-else class="card podwave-auth-card shadow-sm">
-          <div class="card-body p-4">
-            <form novalidate @submit.prevent="handleSubmit">
-              <div class="d-flex flex-column align-items-center mb-4">
-                <img
-                  :src="currentPictureUrl()"
-                  alt="Foto de perfil"
-                  class="rounded-circle mb-3"
-                  width="120"
-                  height="120"
-                  style="object-fit: cover"
-                />
-
-                <label for="profilePicture" class="form-label">Foto de perfil</label>
-                <input
-                  id="profilePicture"
-                  type="file"
-                  class="form-control"
-                  accept="image/png, image/jpeg, image/webp"
-                  @change="handleFileChange"
-                />
-                <div class="form-text">JPEG, PNG ou WEBP, até 5MB. Deixe em branco para manter a foto atual.</div>
-              </div>
-
-              <div class="mb-3">
-                <label for="fullName" class="form-label">Nome completo</label>
-                <input
-                  id="fullName"
-                  v-model="form.fullName"
-                  type="text"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.fullName }"
-                />
-                <div v-if="errors.fullName" class="invalid-feedback">{{ errors.fullName }}</div>
-              </div>
-
-              <div class="mb-3">
-                <label for="bio" class="form-label">Bio</label>
-                <textarea
-                  id="bio"
-                  v-model="form.bio"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.bio }"
-                  rows="3"
-                  :maxlength="BIO_MAX"
-                ></textarea>
-                <div v-if="errors.bio" class="invalid-feedback">{{ errors.bio }}</div>
-                <div class="form-text">{{ form.bio.length }}/{{ BIO_MAX }} caracteres</div>
-              </div>
-
-              <div v-if="apiErrorMessage" class="alert alert-danger py-2" role="alert">
-                {{ apiErrorMessage }}
-              </div>
-              <div v-if="successMessage" class="alert alert-success py-2" role="alert">
-                {{ successMessage }}
-              </div>
-
-              <button type="submit" class="btn btn-primary w-100" :disabled="isSubmitting">
-                {{ isSubmitting ? 'Salvando...' : 'Salvar alterações' }}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div v-else-if="loadErrorMessage" class="container py-5">
+    <div class="alert alert-danger">{{ loadErrorMessage }}</div>
   </div>
+
+  <FormCard v-else title="Meu Perfil" icon="bi-person-circle" width="md">
+    <form novalidate @submit.prevent="handleSubmit">
+      <div class="d-flex flex-column align-items-center mb-4">
+        <img
+          :src="currentPictureUrl()"
+          alt="Foto de perfil"
+          class="rounded-circle mb-3"
+          width="120"
+          height="120"
+          style="object-fit: cover"
+        />
+
+        <label for="profilePicture" class="form-label">Foto de perfil</label>
+        <input
+          id="profilePicture"
+          type="file"
+          class="form-control"
+          accept="image/png, image/jpeg, image/webp"
+          @change="handleFileChange"
+        />
+        <div class="form-text">JPEG, PNG ou WEBP, até 5MB. Deixe em branco para manter a foto atual.</div>
+      </div>
+
+      <BaseInput id="fullName" v-model="form.fullName" label="Nome completo" :error="errors.fullName" required />
+
+      <BaseInput
+        id="bio"
+        v-model="form.bio"
+        label="Bio"
+        as="textarea"
+        :rows="3"
+        :maxlength="BIO_MAX"
+        :error="errors.bio"
+        :help-text="`${form.bio.length}/${BIO_MAX} caracteres`"
+      />
+
+      <div v-if="apiErrorMessage" class="alert alert-danger py-2" role="alert">
+        {{ apiErrorMessage }}
+      </div>
+      <div v-if="successMessage" class="alert alert-success py-2" role="alert">
+        {{ successMessage }}
+      </div>
+
+      <BaseButton type="submit" :loading="isSubmitting">
+        Salvar alterações
+        <template #loading>Salvando...</template>
+      </BaseButton>
+    </form>
+  </FormCard>
 </template>

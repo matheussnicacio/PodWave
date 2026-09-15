@@ -1,12 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/auth'
+import { useAuth } from '../../composables/useAuth'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const { isAuthenticated, logout } = useAuth()
 
 async function handleLogout() {
-  await authStore.logout()
+  await logout()
   router.push({ name: 'login' })
 }
 </script>
@@ -15,18 +15,20 @@ async function handleLogout() {
   <header class="navbar">
     <router-link to="/" class="brand">PodWave</router-link>
     <nav>
-      <router-link to="/feed">Feed</router-link>
-      <router-link to="/search">Buscar</router-link>
+      <router-link to="/feed"><i class="bi bi-house"></i> Feed</router-link>
+      <router-link to="/search"><i class="bi bi-search"></i> Buscar</router-link>
 
-      <template v-if="authStore.isAuthenticated">
-        <router-link to="/upload">Publicar</router-link>
-        <router-link to="/profile">Perfil</router-link>
-        <button type="button" class="logout-link" @click="handleLogout">Sair</button>
+      <template v-if="isAuthenticated">
+        <router-link to="/upload"><i class="bi bi-upload"></i> Publicar</router-link>
+        <router-link to="/profile"><i class="bi bi-person-circle"></i> Perfil</router-link>
+        <button type="button" class="logout-link" @click="handleLogout">
+          <i class="bi bi-box-arrow-right"></i> Sair
+        </button>
       </template>
 
       <template v-else>
-        <router-link to="/register">Criar Conta</router-link>
-        <router-link to="/login">Entrar</router-link>
+        <router-link to="/register"><i class="bi bi-person-plus"></i> Criar Conta</router-link>
+        <router-link to="/login"><i class="bi bi-box-arrow-in-right"></i> Entrar</router-link>
       </template>
     </nav>
   </header>

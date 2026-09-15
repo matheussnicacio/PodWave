@@ -377,3 +377,73 @@ Só uma chamada de toda a aplicação (updateProfile) precisa de multipart/form-
 
 3. Por que reaproveitar uma constante parecida é um erro sutil
 USERNAME_MAX e o limite da bio só coincidem em valor, não em significado — um é limite de UX pra nome de usuário, o outro é o tamanho físico da coluna no banco (STRING(255)). Se eu reaproveitasse a constante errada, o bug ficaria escondido até alguém mudar USERNAME_MAX por outro motivo, quebrando a validação da bio sem querer. Por isso criei BIO_MAX separada: cada campo evolui de forma independente, sem efeito colateral nos outros. A regra geral: antes de reaproveitar uma constante, perguntar se ela representa o mesmo conceito ou só coincide em número.
+
+# Checklists — Atividade Aula 06 (PodWave)
+
+## PARTE A — Backend: Checkpoint de Consistência (Sem Código Novo)
+
+### Checklist das tarefas
+- [x] `checkpoint-01.md` criado e respondido, salvo em `atividade06/`
+- [x] Todos os endpoints já construídos continuam respondendo como esperado — nenhuma linha de backend foi alterada nesta atividade, então não há regressão possível *(subir a API localmente com MySQL e conferir, se quiser confirmação extra)*
+
+## PARTE B — Frontend: Componentização e Consistência Visual
+
+### Checklist das tarefas
+- [x] `bootstrap-icons` incluído via CDN em `index.html`, junto do Bootstrap 5 já existente
+- [x] Os três componentes-base criados em `src/components/base/`: `BaseInput.vue` (usa `defineModel()`), `BaseButton.vue`, `FormCard.vue`
+- [x] As três telas refatoradas para usar `BaseInput` / `BaseButton` / `FormCard`: `LoginView.vue`, `RegisterView.vue`, `MyProfileView.vue`
+- [x] Tela de Registro agora visualmente consistente com Login/Perfil — usa `FormCard` com a mesma cor de marca (`--podwave-brand`, `.podwave-auth-card`), sem nenhuma cor nova introduzida
+- [x] `composables/useAuth.js` criado, centralizando o acesso a `useAuthStore()` (usuário, `isAuthenticated`, `isAdmin`, `login`, `logout`, `updateUser`)
+- [x] Guarda de rota (`router/index.js`) atualizado para usar `useAuth()` em vez de `useAuthStore()` direto
+- [x] `TheNavbar.vue` atualizado para usar `useAuth()`
+- [x] `TheSidebar.vue` atualizado para usar `useAuth()` — os três links (Meus Podcasts, Notificações, Admin) já existiam e já tinham suas rotas protegidas por `meta: { requiresAuth }`/`requiresAdmin`; a Sidebar só passou a refletir visualmente essa mesma regra (Admin some para quem não é admin), sem nenhum link novo apontando para funcionalidade ainda não construída
+- [x] `npm run build` concluído sem erros neste ambiente, validando sintaxe/imports dos componentes e do composable novos
+
+### Checklist de testes
+- [ ] Cadastro → confirmar o redirecionamento ao Login, com a tela agora estilizada *(fazer localmente)*
+- [ ] Login → confirmar o redirecionamento à tela principal *(fazer localmente)*
+- [ ] Navbar → confirmar a troca correta entre estado logado/deslogado *(fazer localmente)*
+- [ ] Edição de Perfil → confirmar que os três comportamentos da Atividade 05 (dados reais, edição, upload de foto) continuam funcionando, agora passando pelos componentes-base *(fazer localmente, com MySQL rodando)*
+- [ ] Guarda de rota → deslogado, tentar acessar a URL de uma tela protegida diretamente → confirmar o redirecionamento ao Login *(fazer localmente)*
+- [ ] Console do DevTools sem nenhum erro novo durante todo o teste *(fazer localmente)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [ ] Print `registro-antes.jpg` (tela de Registro sem estilo) e `registro-depois.jpg` (com `FormCard`/Bootstrap aplicado), em `atividade06/`
+- [ ] Print `tres-telas-consistentes.jpg` — Registro, Login e Perfil lado a lado, em `atividade06/`
+- [ ] Print da Navbar reagindo ao estado logado/deslogado, em `atividade06/`
+- [ ] Rodar os cinco testes acima localmente (API + MySQL) e confirmar sem erros no Console
+- [ ] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
+- [ ] Explicar com suas palavras: a diferença entre um componente (`BaseInput`) e um composable (`useAuth`); o que `defineModel()` resolve e por que evita repetir a dança manual de `props`/`emit`; por que uma tela nova (link na Navbar/Sidebar) só deve ser adicionada quando a funcionalidade que ela representa já existir, ou tiver uma aula futura clara para isso
+
+EXPLICAÇÃO — Componente vs. Composable, defineModel() e links novos na navegação
+
+**1. Componente vs. composable**
+Um componente (`BaseInput`, `BaseButton`, `FormCard`) sempre produz um
+pedaço de `<template>` — ele desenha algo na tela. Um composable
+(`useAuth`) é só uma função que empacota lógica com estado (aqui,
+`computed()` em cima do Pinia) para ser reaproveitada por vários lugares
+diferentes — ele não desenha nada sozinho, só devolve dados/funções para
+quem chamou usar no próprio template. `BaseInput` sem `<template>` não
+funcionaria; `useAuth()` sem `<template>` é exatamente o ponto.
+
+**2. O que `defineModel()` resolve**
+Antes do `defineModel()`, um componente que quisesse suportar `v-model`
+precisava declarar `props: ['modelValue']` e `emits: ['update:modelValue']`
+na mão, e no template escrever `:value="modelValue"` +
+`@input="$emit('update:modelValue', $event.target.value)"` — essa dança
+inteira repetida em todo componente novo. `defineModel()` gera essa prop e
+esse emit por baixo dos panos: `const model = defineModel()` já devolve
+uma referência reativa de duas vias, então `v-model="model"` no
+input/textarea interno é suficiente, e quem usa `BaseInput` de fora
+continua escrevendo `v-model="form.email"` normalmente, sem saber que por
+dentro isso virou prop+emit.
+
+**3. Por que um link novo só entra quando a funcionalidade existe**
+Um link na Navbar/Sidebar é uma promessa para quem está navegando: "clique
+aqui, tem algo funcionando do outro lado". Adicionar um link para uma tela
+que ainda não foi construída (ou que só existe como placeholder vazio)
+quebra essa promessa e mistura duas coisas que deveriam ficar separadas: o
+que o projeto *já entrega* hoje, e o que está *planejado* para uma aula
+futura. Por isso a Sidebar desta atividade não ganhou nenhum link novo —
+só passou a esconder, quando deslogado, links que já existiam e cujas
+rotas já eram protegidas pelo guarda de rota desde antes.

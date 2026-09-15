@@ -1,11 +1,14 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/auth'
+import { useAuth } from '../../composables/useAuth'
+import BaseInput from '../../components/base/BaseInput.vue'
+import BaseButton from '../../components/base/BaseButton.vue'
+import FormCard from '../../components/base/FormCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const authStore = useAuthStore()
+const { login } = useAuth()
 
 const form = reactive({
   email: '',
@@ -20,7 +23,7 @@ async function handleSubmit() {
   isSubmitting.value = true
 
   try {
-    await authStore.login({ email: form.email.trim(), password: form.password })
+    await login({ email: form.email.trim(), password: form.password })
 
     // Destino padrão pós-login: a rota principal do projeto (Feed).
     // Se o usuário chegou aqui redirecionado de uma rota protegida
@@ -36,58 +39,39 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-12 col-sm-8 col-md-6 col-lg-4 py-5">
-        <div class="text-center mb-4">
-          <div class="podwave-brand-icon mx-auto mb-3">PW</div>
-          <h1 class="h3 mb-1">Entrar no PodWave</h1>
-          <p class="text-secondary">Acesse sua conta para continuar</p>
-        </div>
+  <FormCard title="Entrar no PodWave" subtitle="Acesse sua conta para continuar" icon="bi-box-arrow-in-right">
+    <form novalidate @submit.prevent="handleSubmit">
+      <BaseInput
+        id="email"
+        v-model="form.email"
+        label="E-mail"
+        type="email"
+        autocomplete="email"
+        required
+      />
 
-        <div class="card podwave-auth-card shadow-sm">
-          <div class="card-body p-4">
-            <form novalidate @submit.prevent="handleSubmit">
-              <div class="mb-3">
-                <label for="email" class="form-label">E-mail</label>
-                <input
-                  id="email"
-                  v-model="form.email"
-                  type="email"
-                  class="form-control"
-                  autocomplete="email"
-                  required
-                />
-              </div>
+      <BaseInput
+        id="password"
+        v-model="form.password"
+        label="Senha"
+        type="password"
+        autocomplete="current-password"
+        required
+      />
 
-              <div class="mb-3">
-                <label for="password" class="form-label">Senha</label>
-                <input
-                  id="password"
-                  v-model="form.password"
-                  type="password"
-                  class="form-control"
-                  autocomplete="current-password"
-                  required
-                />
-              </div>
-
-              <div v-if="apiErrorMessage" class="alert alert-danger py-2" role="alert">
-                {{ apiErrorMessage }}
-              </div>
-
-              <button type="submit" class="btn btn-primary w-100" :disabled="isSubmitting">
-                {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <p class="text-center text-secondary mt-3 mb-0">
-          Ainda não tem conta?
-          <router-link to="/register" class="text-primary">Criar conta</router-link>
-        </p>
+      <div v-if="apiErrorMessage" class="alert alert-danger py-2" role="alert">
+        {{ apiErrorMessage }}
       </div>
-    </div>
-  </div>
+
+      <BaseButton type="submit" :loading="isSubmitting">
+        Entrar
+        <template #loading>Entrando...</template>
+      </BaseButton>
+    </form>
+
+    <template #footer>
+      Ainda não tem conta?
+      <router-link to="/register" class="text-primary">Criar conta</router-link>
+    </template>
+  </FormCard>
 </template>

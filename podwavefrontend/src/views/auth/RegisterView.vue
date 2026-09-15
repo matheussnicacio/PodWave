@@ -2,6 +2,9 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '../../services/authService'
+import BaseInput from '../../components/base/BaseInput.vue'
+import BaseButton from '../../components/base/BaseButton.vue'
+import FormCard from '../../components/base/FormCard.vue'
 
 const router = useRouter()
 
@@ -80,113 +83,69 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="auth-page">
-    <h1>Criar Conta</h1>
+  <FormCard title="Criar Conta" subtitle="Junte-se ao PodWave" icon="bi-person-plus">
+    <form novalidate @submit.prevent="handleSubmit">
+      <BaseInput
+        id="fullName"
+        v-model="form.fullName"
+        label="Nome completo"
+        :error="errors.fullName"
+        autocomplete="name"
+        required
+      />
 
-    <form @submit.prevent="handleSubmit">
-      <div class="field">
-        <label for="fullName">Nome completo</label>
-        <input id="fullName" type="text" v-model="form.fullName" />
-        <span v-if="errors.fullName" class="error-message">{{ errors.fullName }}</span>
+      <BaseInput
+        id="username"
+        v-model="form.username"
+        label="Usuário"
+        :error="errors.username"
+        autocomplete="username"
+        required
+      />
+
+      <BaseInput
+        id="email"
+        v-model="form.email"
+        label="E-mail"
+        type="email"
+        :error="errors.email"
+        autocomplete="email"
+        required
+      />
+
+      <BaseInput
+        id="password"
+        v-model="form.password"
+        label="Senha"
+        type="password"
+        :error="errors.password"
+        autocomplete="new-password"
+        required
+      />
+
+      <BaseInput
+        id="confirmPassword"
+        v-model="form.confirmPassword"
+        label="Confirmar senha"
+        type="password"
+        :error="errors.confirmPassword"
+        autocomplete="new-password"
+        required
+      />
+
+      <div v-if="apiErrorMessage" class="alert alert-danger py-2" role="alert">
+        {{ apiErrorMessage }}
       </div>
 
-      <div class="field">
-        <label for="username">Usuário</label>
-        <input id="username" type="text" v-model="form.username" />
-        <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
-      </div>
-
-      <div class="field">
-        <label for="email">E-mail</label>
-        <input id="email" type="email" v-model="form.email" />
-        <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
-      </div>
-
-      <div class="field">
-        <label for="password">Senha</label>
-        <input id="password" type="password" v-model="form.password" />
-        <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
-      </div>
-
-      <div class="field">
-        <label for="confirmPassword">Confirmar senha</label>
-        <input id="confirmPassword" type="password" v-model="form.confirmPassword" />
-        <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
-      </div>
-
-      <p v-if="apiErrorMessage" class="api-error">{{ apiErrorMessage }}</p>
-
-      <button type="submit" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Criando conta...' : 'Criar Minha Conta' }}
-      </button>
+      <BaseButton type="submit" :loading="isSubmitting">
+        Criar Minha Conta
+        <template #loading>Criando conta...</template>
+      </BaseButton>
     </form>
-  </div>
+
+    <template #footer>
+      Já tem conta?
+      <router-link to="/login" class="text-primary">Entrar</router-link>
+    </template>
+  </FormCard>
 </template>
-
-<style scoped>
-.auth-page {
-  max-width: 420px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-}
-
-.auth-page h1 {
-  margin-bottom: 1.5rem;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-label {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-input {
-  padding: 0.6rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #26262e;
-  background-color: #16161c;
-  color: #f2f2f2;
-  font-size: 1rem;
-}
-
-input:focus {
-  outline: 2px solid #6c5ce7;
-  outline-offset: 1px;
-}
-
-.error-message {
-  color: #ff6b6b;
-  font-size: 0.8rem;
-}
-
-.api-error {
-  color: #ff6b6b;
-  font-size: 0.9rem;
-}
-
-button {
-  padding: 0.7rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #6c5ce7;
-  color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-</style>

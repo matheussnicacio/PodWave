@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { useAuth } from '../composables/useAuth'
 
 const routes = [
   { path: '/', name: 'landing', component: () => import('../views/LandingView.vue') },
@@ -87,18 +87,19 @@ const router = createRouter({
 // Guarda de rota global: bloqueia acesso direto a rotas com
 // meta: { requiresAuth: true } quando não há sessão ativa.
 //
-// useAuthStore() é chamado AQUI DENTRO do callback, não no topo do arquivo,
-// porque no topo do arquivo o Pinia ainda não foi registrado na aplicação
-// (isso só acontece em main.js, com app.use(createPinia())). Chamar
-// useAuthStore() antes disso lançaria erro de "no active Pinia".
+// useAuth() (e, por baixo, useAuthStore()) é chamado AQUI DENTRO do
+// callback, não no topo do arquivo, porque no topo do arquivo o Pinia
+// ainda não foi registrado na aplicação (isso só acontece em main.js, com
+// app.use(createPinia())). Chamar useAuth() antes disso lançaria erro de
+// "no active Pinia".
 router.beforeEach((to) => {
-  const authStore = useAuthStore()
+  const { isAuthenticated, isAdmin } = useAuth()
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+  if (to.meta.requiresAdmin && !isAdmin.value) {
     return { name: 'feed' }
   }
 
