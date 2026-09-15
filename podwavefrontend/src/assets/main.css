@@ -51,3 +51,25 @@
   border: none;
   border-top: 4px solid var(--podwave-brand);
 }
+
+/*
+  A barra de progresso do Bootstrap (.progress > .progress-bar) já existe
+  por padrão, mas sai azul-genérica. Sobrescrevendo .progress-bar aqui, ela
+  passa a usar a cor de marca do PodWave, igual a qualquer outro elemento
+  de destaque (.btn-primary, .text-primary) — sem precisar de nenhuma
+  classe extra no HTML.
+*/
+.progress-bar {
+  background-color: var(--podwave-brand);
+  transition: width 0.2s ease;
+}
+
+/* Prévia da imagem de capa escolhida no formulário de envio de episódio. */
+.thumbnail-preview {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #26262e;
+  background-color: #16161c;
+}
