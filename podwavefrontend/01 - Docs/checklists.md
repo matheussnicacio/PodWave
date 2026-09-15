@@ -400,20 +400,20 @@ USERNAME_MAX e o limite da bio só coincidem em valor, não em significado — u
 - [x] `npm run build` concluído sem erros neste ambiente, validando sintaxe/imports dos componentes e do composable novos
 
 ### Checklist de testes
-- [ ] Cadastro → confirmar o redirecionamento ao Login, com a tela agora estilizada *(fazer localmente)*
-- [ ] Login → confirmar o redirecionamento à tela principal *(fazer localmente)*
-- [ ] Navbar → confirmar a troca correta entre estado logado/deslogado *(fazer localmente)*
-- [ ] Edição de Perfil → confirmar que os três comportamentos da Atividade 05 (dados reais, edição, upload de foto) continuam funcionando, agora passando pelos componentes-base *(fazer localmente, com MySQL rodando)*
-- [ ] Guarda de rota → deslogado, tentar acessar a URL de uma tela protegida diretamente → confirmar o redirecionamento ao Login *(fazer localmente)*
-- [ ] Console do DevTools sem nenhum erro novo durante todo o teste *(fazer localmente)*
+- [x] Cadastro → confirmar o redirecionamento ao Login, com a tela agora estilizada *(fazer localmente)*
+- [x] Login → confirmar o redirecionamento à tela principal *(fazer localmente)*
+- [x] Navbar → confirmar a troca correta entre estado logado/deslogado *(fazer localmente)*
+- [x] Edição de Perfil → confirmar que os três comportamentos da Atividade 05 (dados reais, edição, upload de foto) continuam funcionando, agora passando pelos componentes-base *(fazer localmente, com MySQL rodando)*
+- [x] Guarda de rota → deslogado, tentar acessar a URL de uma tela protegida diretamente → confirmar o redirecionamento ao Login *(fazer localmente)*
+- [x] Console do DevTools sem nenhum erro novo durante todo o teste *(fazer localmente)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
-- [ ] Print `registro-antes.jpg` (tela de Registro sem estilo) e `registro-depois.jpg` (com `FormCard`/Bootstrap aplicado), em `atividade06/`
-- [ ] Print `tres-telas-consistentes.jpg` — Registro, Login e Perfil lado a lado, em `atividade06/`
-- [ ] Print da Navbar reagindo ao estado logado/deslogado, em `atividade06/`
-- [ ] Rodar os cinco testes acima localmente (API + MySQL) e confirmar sem erros no Console
-- [ ] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
-- [ ] Explicar com suas palavras: a diferença entre um componente (`BaseInput`) e um composable (`useAuth`); o que `defineModel()` resolve e por que evita repetir a dança manual de `props`/`emit`; por que uma tela nova (link na Navbar/Sidebar) só deve ser adicionada quando a funcionalidade que ela representa já existir, ou tiver uma aula futura clara para isso
+- [x] Print `registro-antes.jpg` (tela de Registro sem estilo) e `registro-depois.jpg` (com `FormCard`/Bootstrap aplicado), em `atividade06/`
+- [x] Print `tres-telas-consistentes.jpg` — Registro, Login e Perfil lado a lado, em `atividade06/`
+- [x] Print da Navbar reagindo ao estado logado/deslogado, em `atividade06/`
+- [x] Rodar os cinco testes acima localmente (API + MySQL) e confirmar sem erros no Console
+- [x] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
+- [x] Explicar com suas palavras: a diferença entre um componente (`BaseInput`) e um composable (`useAuth`); o que `defineModel()` resolve e por que evita repetir a dança manual de `props`/`emit`; por que uma tela nova (link na Navbar/Sidebar) só deve ser adicionada quando a funcionalidade que ela representa já existir, ou tiver uma aula futura clara para isso
 
 EXPLICAÇÃO — Componente vs. Composable, defineModel() e links novos na navegação
 
