@@ -447,3 +447,140 @@ que o projeto *já entrega* hoje, e o que está *planejado* para uma aula
 futura. Por isso a Sidebar desta atividade não ganhou nenhum link novo —
 só passou a esconder, quando deslogado, links que já existiam e cujas
 rotas já eram protegidas pelo guarda de rota desde antes.
+
+# Checklists — Atividade Aula 07 (PodWave)
+
+## Antes de começar — Ficha de preparação
+- [x] Model: `Episode` / tabela: `episodes` / Grupo **A** (áudio + capa) —
+      ficha completa em `atividade07/ficha.md`
+
+## PARTE A — Backend: Model, Associação e Upload
+
+### Checklist das tarefas
+- [x] Pastas `public/uploads/episodes/audio/` e `public/uploads/episodes/covers/`
+      criadas pelo próprio `episodeMulter.js` na primeira execução
+- [x] `TITLE_MAX: 100` e `DESCRIPTION_MAX: 500` adicionados a `VALIDATION`
+      em `config/constants.js` (nenhuma das duas existia ainda neste
+      projeto, apesar do enunciado supor `DESCRIPTION_MAX` desde a Aula 05
+      — como não existia, foi criada agora, do mesmo jeito que `BIO_MAX`
+      foi criada na Aula 05: constante própria, não reaproveitada de outro
+      campo)
+- [x] `episodeModel.js` criado, Grupo A: campos `audio` e `cover`, além de
+      `title`, `description` e `userId`
+- [x] `config/associations.js` criado: `User.hasMany(Episode)` /
+      `Episode.belongsTo(User)`
+- [x] `middlewares/episodeMulter.js` criado, coerente com o Grupo A:
+      `multer.fields([{ name: 'audio' }, { name: 'cover' }])`, com
+      `fileFilter` e pasta de destino diferentes por `fieldname`
+- [x] `episodeValidator.js`, `episodeService.js`, `episodeController.js` e
+      `episodeRoutes.js` criados
+- [x] Ordem de middlewares na rota conferida:
+      `isAuthenticated → episodeMulter.fields([...]) → episodeUploadValidator → controller`
+- [x] Rota `POST /episodes` montada em `app.js` (`app.use('/api', episodeRoutes)`)
+- [x] `require('./config/associations')` chamado em `app.js`, antes de
+      `sequelize.sync({ alter: true })`
+- [x] Tabela `episodes` confirmada no banco, com FK `user_id`
+      *(confirmar localmente, ver `atividade07/LEIA-ME.md`)*
+
+### Checklist desta etapa
+- [ ] Upload completo funciona e `episodesCount` do usuário sobe
+      *(rodar localmente — comando 2 do `LEIA-ME.md`)*
+- [ ] Cada um dos quatro casos de erro é recusado com o status esperado
+      *(rodar localmente — comandos 3 a 6 do `LEIA-ME.md`)*
+
+## PARTE B — Frontend: Formulário, Progresso e Alcançabilidade
+
+### Checklist das tarefas
+- [x] `services/episodeService.js` criado, recebendo `onUploadProgress`
+      como parâmetro (repassado direto para o `config` do Axios)
+- [x] `.progress-bar` e `.thumbnail-preview` adicionadas a `assets/main.css`
+- [x] Formulário completo em `UploadView.vue`, adaptado ao Grupo A: título,
+      descrição, arquivo de áudio, arquivo de capa
+- [x] Barra de progresso funcionando, calculada a partir de
+      `progressEvent.loaded` / `progressEvent.total` do `onUploadProgress`
+- [x] Prévia de imagem da capa funcionando (`URL.createObjectURL`, sem
+      chamada de rede)
+- [x] Link "Publicar" já existia na Navbar desde antes desta aula
+      (`TheNavbar.vue`, dentro do bloco `v-if="isAuthenticated"`) — conferido
+      e mantido sem alterações, já satisfazia o requisito de visibilidade
+- [ ] Resposta ao checklist de alcançabilidade escrita, junto com a entrega
+      *(ver seção abaixo)*
+
+### Checklist desta etapa
+- [ ] Login → clique no link "Publicar" → confirmar a URL mudando sem
+      recarregar a página *(fazer localmente)*
+- [ ] Envio vazio → confirmar os erros de campo obrigatório *(fazer localmente)*
+- [ ] Escolher só um dos dois arquivos → confirmar o erro pedindo o outro
+      *(fazer localmente)*
+- [ ] Escolher os arquivos corretamente → confirmar a prévia da capa, sem
+      nenhuma chamada de rede *(fazer localmente)*
+- [ ] Enviar → observar a barra de progresso avançar → confirmar a mensagem
+      de sucesso *(fazer localmente)*
+- [ ] DevTools → Network → confirmar
+      `Content-Type: multipart/form-data; boundary=...` *(fazer localmente)*
+- [ ] Confirmar no banco (ou via Postman/curl) que o registro foi criado e
+      `episodesCount` subiu *(fazer localmente)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [x] Ficha de preparação salva em `atividade07/ficha.md`
+- [ ] Print `formulario-preenchido.jpg`
+- [ ] Print `progresso-upload.jpg` (ou `.mp4`)
+- [ ] Print `upload-multipart.jpg`
+- [ ] Print `link-envio.jpg`
+- [ ] Print de cada `curl` da Etapa 8 (Parte A) — comandos prontos em
+      `atividade07/LEIA-ME.md`
+- [ ] Resposta escrita ao checklist de alcançabilidade da Etapa 4
+- [ ] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
+
+EXPLICAÇÃO — Associação explícita, multer.single vs multer.fields, e onUploadProgress
+
+**1. Por que a associação precisa ser declarada explicitamente, e por que
+centralizar isso evita referência circular**
+A FK `userId` já existe como coluna comum no `episodeModel.js`, mas, para o
+Sequelize, uma coluna chamada `userId` é só um inteiro qualquer — nada nela
+diz "isso aponta para outra tabela". `User.hasMany(Episode)` e
+`Episode.belongsTo(User)` são o que ensina isso ao Sequelize: só depois
+dessas linhas existem os métodos automáticos (`user.getEpisodes()`,
+`episode.getUser()`, o `include` para trazer o autor junto do episódio) e
+só assim o `sync({ alter: true })` sabe criar a FK de verdade no banco, com
+sua constraint. Se essa declaração ficasse dentro dos próprios models
+(`User.hasMany(Episode)` dentro do `userModel.js`, `Episode.belongsTo(User)`
+dentro do `episodeModel.js`), cada arquivo precisaria dar `require` no
+outro para enxergá-lo — e os dois fariam isso ao mesmo tempo, um esperando
+o outro terminar de carregar primeiro. Isso é uma referência circular:
+dependendo da ordem em que o Node resolve os `require`s, um dos dois
+módulos seria importado "pela metade" (com `module.exports` ainda
+incompleto), e a associação declarada com um valor `undefined` no lugar do
+model. Um arquivo à parte (`config/associations.js`) que importa os dois
+models já prontos e só então declara a relação entre eles nunca sofre
+desse problema, porque os dois `require`s dos models terminam de rodar
+antes de qualquer associação ser declarada.
+
+**2. multer.single(...) vs. multer.fields([...])**
+`multer.single('nomeDoCampo')` espera exatamente **um** arquivo, vindo de
+um único campo nomeado, e o disponibiliza em `req.file` (singular) — é o
+que `PUT /profile/me` usa, porque só existe um arquivo possível (a foto).
+`multer.fields([{ name: 'audio' }, { name: 'cover' }])` espera **vários**
+campos de arquivo diferentes na mesma requisição, cada um com seu próprio
+nome, e os disponibiliza em `req.files` (plural), um objeto onde cada
+chave é o nome do campo e o valor é sempre um array de arquivos (mesmo com
+`maxCount: 1`, por isso `req.files.audio[0]`, não `req.files.audio`). O
+projeto usa `fields([...])` porque o Grupo A exige dois arquivos
+independentes (áudio + capa) na mesma publicação, cada um com seu próprio
+`<input type="file">` no formulário e seu próprio nome de campo no
+`FormData` — `single(...)` simplesmente não tem como representar "dois
+arquivos, cada um com seu papel", só aceitaria o primeiro e ignoraria (ou
+rejeitaria) o segundo.
+
+**3. O que `onUploadProgress` do Axios recebe, e como virar porcentagem**
+`onUploadProgress` é chamado várias vezes durante o envio do corpo da
+requisição, cada vez recebendo um `ProgressEvent` do navegador. Dele, os
+dois campos usados são `loaded` (quantos bytes do corpo já foram
+efetivamente transmitidos até agora) e `total` (o tamanho total do corpo,
+em bytes — presente quando o navegador consegue calculá-lo de antemão, o
+que é o caso normal de um `FormData` com arquivos de tamanho conhecido).
+A porcentagem exibível é só `Math.round((loaded / total) * 100)`: uma
+razão simples entre o que já foi enviado e o total, convertida para um
+número de 0 a 100 que vira diretamente a largura (`width`) da barra de
+progresso no template.
+
