@@ -28,6 +28,18 @@ e que o terminal mostra `Banco de dados sincronizado!`, com a tabela
 
 ## 2) Testes da Parte A (prints de cada curl)
 
+> ⚠️ **Achado ao testar de verdade:** o `curl` não reconhece `.mp3` como
+> `audio/mpeg` sozinho — por padrão ele manda
+> `Content-Type: application/octet-stream` para esse arquivo, o que faz o
+> `fileFilter` do `episodeMulter.js` rejeitar até o caso de **sucesso** com
+> `400`. Isso não acontece pelo navegador (o `<input type="file">` do
+> formulário já manda o mimetype certo sozinho) — é uma particularidade só
+> do `curl`. Por isso, nos comandos abaixo, o campo de áudio é enviado como
+> `audio=@arquivo.mp3;type=audio/mpeg` (o `;type=...` força o Content-Type
+> certo). Todos os comandos abaixo já foram rodados aqui, contra a API e o
+> MySQL reais, e os status batem exatamente com o esperado — é só trocar
+> `SEU_TOKEN` e os caminhos de arquivo pelos seus.
+
 Troque `SEU_TOKEN` pelo token devolvido no login (`POST /api/login`), e os
 caminhos de arquivo pelos seus próprios arquivos de teste (um `.mp3` e uma
 imagem).
@@ -38,41 +50,46 @@ curl -X POST http://localhost:4000/api/login \
   -H "Content-Type: application/json" \
   -d '{"email":"SEU_EMAIL","password":"SUA_SENHA"}'
 
-# 2) Upload completo, com sucesso -> 201
+# 2) Upload completo, com sucesso -> 201 (testado aqui: 201 confirmado)
 curl -i -X POST http://localhost:4000/api/episodes \
   -H "Authorization: Bearer SEU_TOKEN" \
   -F "title=Episódio de teste" \
   -F "description=Descrição do episódio de teste" \
-  -F "audio=@/caminho/para/seu-audio.mp3" \
-  -F "cover=@/caminho/para/sua-capa.jpg"
+  -F "audio=@/caminho/para/seu-audio.mp3;type=audio/mpeg" \
+  -F "cover=@/caminho/para/sua-capa.jpg;type=image/jpeg"
 
-# 3) Caso de erro 1 — sem título -> 400
+# 3) Caso de erro 1 — sem título -> 400 (testado aqui: 400 confirmado,
+#    "O título é obrigatório.")
 curl -i -X POST http://localhost:4000/api/episodes \
   -H "Authorization: Bearer SEU_TOKEN" \
   -F "description=Sem título" \
-  -F "audio=@/caminho/para/seu-audio.mp3" \
-  -F "cover=@/caminho/para/sua-capa.jpg"
+  -F "audio=@/caminho/para/seu-audio.mp3;type=audio/mpeg" \
+  -F "cover=@/caminho/para/sua-capa.jpg;type=image/jpeg"
 
-# 4) Caso de erro 2 — sem o arquivo de áudio -> 400
+# 4) Caso de erro 2 — sem o arquivo de áudio -> 400 (testado aqui: 400
+#    confirmado, "O arquivo de áudio é obrigatório.")
 curl -i -X POST http://localhost:4000/api/episodes \
   -H "Authorization: Bearer SEU_TOKEN" \
   -F "title=Sem áudio" \
-  -F "cover=@/caminho/para/sua-capa.jpg"
+  -F "cover=@/caminho/para/sua-capa.jpg;type=image/jpeg"
 
-# 5) Caso de erro 3 — sem a capa -> 400
+# 5) Caso de erro 3 — sem a capa -> 400 (testado aqui: 400 confirmado,
+#    "A imagem de capa é obrigatória.")
 curl -i -X POST http://localhost:4000/api/episodes \
   -H "Authorization: Bearer SEU_TOKEN" \
   -F "title=Sem capa" \
-  -F "audio=@/caminho/para/seu-audio.mp3"
+  -F "audio=@/caminho/para/seu-audio.mp3;type=audio/mpeg"
 
-# 6) Caso de erro 4 — sem token -> 401
+# 6) Caso de erro 4 — sem token -> 401 (testado aqui: 401 confirmado,
+#    "Não autorizado. Token não informado.")
 curl -i -X POST http://localhost:4000/api/episodes \
   -F "title=Sem token" \
-  -F "audio=@/caminho/para/seu-audio.mp3" \
-  -F "cover=@/caminho/para/sua-capa.jpg"
+  -F "audio=@/caminho/para/seu-audio.mp3;type=audio/mpeg" \
+  -F "cover=@/caminho/para/sua-capa.jpg;type=image/jpeg"
 
 # Extra — confirma que o áudio/capa ficaram acessíveis publicamente
 # (troque pelos filenames que voltaram em "audio"/"cover" na resposta do item 2)
+# (testado aqui: 200 confirmado nos dois)
 curl -i http://localhost:4000/uploads/episodes/audio/<arquivo>.mp3
 curl -i http://localhost:4000/uploads/episodes/covers/<arquivo>.jpg
 ```
@@ -82,7 +99,8 @@ erro" pedidos no checklist são os itens 3, 4, 5 e 6).
 
 Depois do item 2, confirme no MySQL (ou via
 `curl http://localhost:4000/api/profile/me -H "Authorization: Bearer SEU_TOKEN"`)
-que `episodesCount` do seu usuário subiu em 1.
+que `episodesCount` do seu usuário subiu em 1 — testado aqui: subiu de 0
+para 2 depois de dois uploads de sucesso seguidos.
 
 ## 3) Prints do front-end
 
