@@ -532,10 +532,7 @@ rotas já eram protegidas pelo guarda de rota desde antes.
 - [x] Print `progresso-upload.jpg` (ou `.mp4`)
 - [x] Print `upload-multipart.jpg`
 - [x] Print `link-envio.jpg`
-- [ ] Print de cada `curl` da Etapa 8 (Parte A) — comandos prontos em
-      `atividade07/LEIA-ME.md` (atenção: use `;type=audio/mpeg` no campo do
-      áudio, senão o próprio `curl` manda o Content-Type errado sozinho —
-      detalhe explicado no início do `LEIA-ME.md`)
+- [x] Print de cada `curl` da Etapa 8 (Parte A)
 - [x] Resposta escrita ao checklist de alcançabilidade da Etapa 4
 - [x] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
 
