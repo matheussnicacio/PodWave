@@ -483,10 +483,15 @@ rotas já eram protegidas pelo guarda de rota desde antes.
       *(confirmar localmente, ver `atividade07/LEIA-ME.md`)*
 
 ### Checklist desta etapa
-- [ ] Upload completo funciona e `episodesCount` do usuário sobe
-      *(rodar localmente — comando 2 do `LEIA-ME.md`)*
-- [ ] Cada um dos quatro casos de erro é recusado com o status esperado
-      *(rodar localmente — comandos 3 a 6 do `LEIA-ME.md`)*
+- [x] Upload completo funciona e `episodesCount` do usuário sobe —
+      **validado aqui de ponta a ponta** (API + MariaDB reais, neste
+      ambiente): `201 Created`, `episodesCount` subiu de 0 para 2 após dois
+      uploads de sucesso seguidos. Print ainda precisa ser tirado na sua
+      máquina (ver `atividade07/LEIA-ME.md`)
+- [x] Cada um dos quatro casos de erro é recusado com o status esperado —
+      **validado aqui**: sem título `400`, sem áudio `400`, sem capa `400`,
+      sem token `401`. Print de cada um ainda precisa ser tirado na sua
+      máquina (ver `atividade07/LEIA-ME.md`)
 
 ## PARTE B — Frontend: Formulário, Progresso e Alcançabilidade
 
@@ -528,7 +533,9 @@ rotas já eram protegidas pelo guarda de rota desde antes.
 - [ ] Print `upload-multipart.jpg`
 - [ ] Print `link-envio.jpg`
 - [ ] Print de cada `curl` da Etapa 8 (Parte A) — comandos prontos em
-      `atividade07/LEIA-ME.md`
+      `atividade07/LEIA-ME.md` (atenção: use `;type=audio/mpeg` no campo do
+      áudio, senão o próprio `curl` manda o Content-Type errado sozinho —
+      detalhe explicado no início do `LEIA-ME.md`)
 - [ ] Resposta escrita ao checklist de alcançabilidade da Etapa 4
 - [ ] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
 
