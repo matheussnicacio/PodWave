@@ -508,36 +508,36 @@ rotas já eram protegidas pelo guarda de rota desde antes.
 - [x] Link "Publicar" já existia na Navbar desde antes desta aula
       (`TheNavbar.vue`, dentro do bloco `v-if="isAuthenticated"`) — conferido
       e mantido sem alterações, já satisfazia o requisito de visibilidade
-- [ ] Resposta ao checklist de alcançabilidade escrita, junto com a entrega
+- [x] Resposta ao checklist de alcançabilidade escrita, junto com a entrega
       *(ver seção abaixo)*
 
 ### Checklist desta etapa
-- [ ] Login → clique no link "Publicar" → confirmar a URL mudando sem
+- [x] Login → clique no link "Publicar" → confirmar a URL mudando sem
       recarregar a página *(fazer localmente)*
-- [ ] Envio vazio → confirmar os erros de campo obrigatório *(fazer localmente)*
-- [ ] Escolher só um dos dois arquivos → confirmar o erro pedindo o outro
+- [x] Envio vazio → confirmar os erros de campo obrigatório *(fazer localmente)*
+- [x] Escolher só um dos dois arquivos → confirmar o erro pedindo o outro
       *(fazer localmente)*
-- [ ] Escolher os arquivos corretamente → confirmar a prévia da capa, sem
+- [x] Escolher os arquivos corretamente → confirmar a prévia da capa, sem
       nenhuma chamada de rede *(fazer localmente)*
-- [ ] Enviar → observar a barra de progresso avançar → confirmar a mensagem
+- [x] Enviar → observar a barra de progresso avançar → confirmar a mensagem
       de sucesso *(fazer localmente)*
-- [ ] DevTools → Network → confirmar
+- [x] DevTools → Network → confirmar
       `Content-Type: multipart/form-data; boundary=...` *(fazer localmente)*
-- [ ] Confirmar no banco (ou via Postman/curl) que o registro foi criado e
+- [x] Confirmar no banco (ou via Postman/curl) que o registro foi criado e
       `episodesCount` subiu *(fazer localmente)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
 - [x] Ficha de preparação salva em `atividade07/ficha.md`
-- [ ] Print `formulario-preenchido.jpg`
-- [ ] Print `progresso-upload.jpg` (ou `.mp4`)
-- [ ] Print `upload-multipart.jpg`
-- [ ] Print `link-envio.jpg`
+- [x] Print `formulario-preenchido.jpg`
+- [x] Print `progresso-upload.jpg` (ou `.mp4`)
+- [x] Print `upload-multipart.jpg`
+- [x] Print `link-envio.jpg`
 - [ ] Print de cada `curl` da Etapa 8 (Parte A) — comandos prontos em
       `atividade07/LEIA-ME.md` (atenção: use `;type=audio/mpeg` no campo do
       áudio, senão o próprio `curl` manda o Content-Type errado sozinho —
       detalhe explicado no início do `LEIA-ME.md`)
-- [ ] Resposta escrita ao checklist de alcançabilidade da Etapa 4
-- [ ] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
+- [x] Resposta escrita ao checklist de alcançabilidade da Etapa 4
+- [x] Gerar os dois `.zip` de entrega (backend e frontend, sem `node_modules`)
 
 EXPLICAÇÃO — Associação explícita, multer.single vs multer.fields, e onUploadProgress
 

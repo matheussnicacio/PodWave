@@ -64,3 +64,30 @@ ganha as linhas abaixo:
 - Contador: `User.episodesCount`, incrementado em
   `podwaveapi/modules/episode/episodeService.js` via
   `User.increment('episodesCount', ...)`
+
+## Resposta ao checklist de alcançabilidade (Etapa 4)
+
+A tela de envio (`/upload`, `UploadView.vue`) deixou de ser alcançável só
+por URL digitada — o mesmo problema que a Aula 05 já tinha corrigido uma
+vez neste projeto (na época, para a tela de perfil). Hoje ela está
+acessível de duas formas, as duas conferidas na prática:
+
+1. **Link visível na Navbar.** Em `TheNavbar.vue` existe
+   `<router-link to="/upload">Publicar</router-link>`, dentro do bloco
+   `v-if="isAuthenticated"` — ou seja, o link só aparece para quem já fez
+   login, e desaparece para visitantes não autenticados (que veem
+   "Criar Conta" / "Entrar" no lugar). Ao clicar no link a partir do Feed já
+   logado, a URL muda para `/upload` sem a página recarregar — confirma
+   que é navegação client-side do Vue Router (`createWebHistory`), não um
+   link cru de `<a href>`.
+2. **Proteção da rota em si.** Em `router/index.js`, a rota `/upload` tem
+   `meta: { requiresAuth: true }`, e o guard global (`router.beforeEach`)
+   redireciona para `/login` quem tenta acessá-la deslogado. Ou seja,
+   mesmo que alguém digite `/upload` direto na barra de endereço sem estar
+   logado, cai no login — a tela nunca fica "escondida, mas acessível" por
+   quem não devia chegar lá.
+
+Isso resolve os dois lados do problema: a tela é **descobrível**
+(aparece um link de verdade na interface, não só por quem já conhece a
+URL) e **protegida** (mesmo conhecendo a URL, só quem está autenticado
+consegue de fato usá-la).
