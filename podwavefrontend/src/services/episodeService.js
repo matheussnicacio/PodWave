@@ -11,3 +11,16 @@ export function createEpisode(formData, onUploadProgress) {
     onUploadProgress,
   })
 }
+
+// Detalhe de um episódio (rota pública no back-end, com optionalAuth: o
+// interceptor do api.js anexa o token quando existe, e o back-end usa isso
+// só para calcular isOwner).
+export function getEpisodeById(id) {
+  return api.get(`/episodes/${id}`)
+}
+
+// Uma página do Feed geral. A API devolve um array em data; array vazio = não
+// há mais itens.
+export function getFeed(page = 1, limit = 8) {
+  return api.get('/feed', { params: { page, limit } })
+}

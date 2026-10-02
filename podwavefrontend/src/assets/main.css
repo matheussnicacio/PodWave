@@ -73,3 +73,79 @@
   border: 1px solid #26262e;
   background-color: #16161c;
 }
+
+/* ---------- Aula 08: Feed e Detalhe do episódio ---------- */
+
+/* Grade responsiva do Feed: quantas colunas couberem com mínimo de 200px. */
+.episode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.episode-card {
+  display: block;
+  border: 1px solid #26262e;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #16161c;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.episode-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--podwave-brand);
+}
+
+/* Capa de podcast é QUADRADA (1:1), como nos apps de podcast — diferente da
+   proporção 16:9 de um card de vídeo. aspect-ratio reserva o espaço antes
+   da imagem carregar (a grade não "pula"), e object-fit: cover recorta capas
+   fora do quadrado sem distorcer. */
+.episode-card-cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  background-color: #26262e;
+}
+
+.episode-card-body {
+  padding: 0.75rem 0.9rem 0.9rem;
+}
+
+.episode-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.episode-card-meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+/* Detalhe: capa em resolução maior ao lado do texto, e o player de áudio em
+   largura total (um <audio controls> é uma barra horizontal, não um quadro
+   16:9 como o <video>). */
+.episode-detail-cover {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #26262e;
+  background-color: #26262e;
+}
+
+.episode-player {
+  width: 100%;
+  margin-top: 1rem;
+}

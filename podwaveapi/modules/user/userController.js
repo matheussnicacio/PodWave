@@ -1,4 +1,5 @@
 const userService = require('./userService');
+const episodeService = require('../episode/episodeService');
 const { success } = require('../../middlewares/apiResponse');
 const { generateToken } = require('../../config/jwt');
 
@@ -54,4 +55,13 @@ exports.updateProfile = async (req, res) => {
   });
 
   return success(res, updatedUser, 'Perfil atualizado com sucesso.');
+};
+
+// GET /api/feed?page=1&limit=10 — protegida por isAuthenticated (ver rotas).
+// Devolve só a página pedida: um array de episódios recentes com o autor
+// populado. Array vazio ([]) significa "não há mais itens nessa página".
+exports.getFeed = async (req, res) => {
+  const { page, limit } = episodeService.parsePagination(req.query);
+  const items = await episodeService.getFeedEpisodes({ page, limit });
+  return success(res, items);
 };

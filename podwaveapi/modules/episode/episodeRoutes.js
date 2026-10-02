@@ -4,6 +4,7 @@ const episodeController = require('./episodeController');
 const { episodeUploadValidator } = require('./episodeValidator');
 const asyncHandler = require('../../middlewares/asyncHandler');
 const isAuthenticated = require('../../middlewares/auth');
+const optionalAuth = require('../../middlewares/optionalAuth');
 const episodeMulter = require('../../middlewares/episodeMulter');
 
 // Ordem dos middlewares importa, e é sempre a mesma lógica de PUT /profile/me:
@@ -26,5 +27,17 @@ router.post(
   episodeUploadValidator,
   asyncHandler(episodeController.uploadEpisode)
 );
+
+// Detalhe: PÚBLICO, mas com optionalAuth — tenta identificar o usuário (para
+// calcular isOwner) sem nunca devolver 401.
+router.get('/episodes/:id', optionalAuth, asyncHandler(episodeController.getEpisodeDetails));
+
+// Streaming com Range: protegido por isAuthenticated. ATENÇÃO — essa proteção
+// é só da ROTA: o mesmo arquivo continua público em /uploads/episodes/audio/...
+// (express.static no app.js, sem nenhum middleware de auth). É a inconsistência
+// de arquitetura discutida no roteiro da Shortz-App; por isso o player do
+// frontend aponta para o caminho estático, não para este endpoint (um
+// <audio src> não consegue enviar o header Authorization).
+router.get('/episodes/:id/stream', isAuthenticated, asyncHandler(episodeController.streamEpisode));
 
 module.exports = router;

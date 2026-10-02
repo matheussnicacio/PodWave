@@ -28,6 +28,9 @@ router.put(
   profileUpdateValidator,
   asyncHandler(userController.updateProfile)
 );
+// Feed geral paginado (?page=&limit=). Protegido: precisa de token.
+router.get('/feed', isAuthenticated, asyncHandler(userController.getFeed));
+
 router.get('/profile/:username', asyncHandler(userController.getPublicProfile));
 
 module.exports = router;

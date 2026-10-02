@@ -1,3 +1,4 @@
+const fs = require('fs');
 const episodeService = require('./episodeService');
 const { success } = require('../../middlewares/apiResponse');
 
@@ -20,4 +21,63 @@ exports.uploadEpisode = async (req, res) => {
   });
 
   return success(res, newEpisode, 'Episódio publicado com sucesso!', 201);
+};
+
+// GET /api/episodes/:id — rota pública com optionalAuth. req.user?.id é
+// undefined para visitante e o id do usuário quando há token válido.
+exports.getEpisodeDetails = async (req, res) => {
+  const episode = await episodeService.getEpisodeDetails(req.params.id, req.user?.id);
+  return success(res, episode);
+};
+
+// GET /api/episodes/:id/stream — streaming com suporte a Range (206).
+//
+// Por que Range importa: um mp3 pode ter dezenas de MB. Sem Range, o servidor
+// teria de mandar o arquivo inteiro de novo toda vez que o ouvinte arrastasse
+// a barra de progresso. Com Range, o player pede só o pedaço que quer
+// ("Range: bytes=1000000-"), o servidor responde 206 Partial Content com
+// Content-Range, e o seek é quase instantâneo.
+exports.streamEpisode = async (req, res) => {
+  const { filePath, size } = await episodeService.getEpisodeAudioFile(req.params.id);
+
+  res.setHeader('Content-Type', 'audio/mpeg');
+  res.setHeader('Accept-Ranges', 'bytes');
+
+  const range = req.headers.range;
+
+  // Sem Range: arquivo inteiro, 200.
+  if (!range) {
+    res.status(200);
+    res.setHeader('Content-Length', size);
+    return fs.createReadStream(filePath).pipe(res);
+  }
+
+  // Formatos aceitos: "bytes=0-1023", "bytes=500-" (até o fim) e
+  // "bytes=-500" (últimos 500 bytes).
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  let start;
+  let end;
+
+  if (match && (match[1] !== '' || match[2] !== '')) {
+    if (match[1] === '') {
+      const suffix = parseInt(match[2], 10);
+      start = Math.max(size - suffix, 0);
+      end = size - 1;
+    } else {
+      start = parseInt(match[1], 10);
+      end = match[2] === '' ? size - 1 : Math.min(parseInt(match[2], 10), size - 1);
+    }
+  }
+
+  // Range malformado ou fora do arquivo: 416 Range Not Satisfiable.
+  if (start === undefined || start >= size || start > end) {
+    res.status(416);
+    res.setHeader('Content-Range', `bytes */${size}`);
+    return res.end();
+  }
+
+  res.status(206);
+  res.setHeader('Content-Range', `bytes ${start}-${end}/${size}`);
+  res.setHeader('Content-Length', end - start + 1);
+  return fs.createReadStream(filePath, { start, end }).pipe(res);
 };
