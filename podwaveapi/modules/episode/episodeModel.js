@@ -20,6 +20,11 @@ const Episode = sequelize.define('Episode',
     audio: { type: DataTypes.STRING, allowNull: false },
     // Nome do arquivo de capa salvo em disco (public/uploads/episodes/covers/).
     cover: { type: DataTypes.STRING, allowNull: false },
+    // Contagem de reproduções/visualizações (Aula 08). Incrementada de forma
+    // atômica a cada GET /api/episodes/:id. Coluna nova: o sync({ alter: true })
+    // do app.js a cria sozinho na tabela já existente (defaultValue 0 faz os
+    // episódios antigos começarem em 0).
+    views: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     userId: { type: DataTypes.INTEGER, allowNull: false }
   },
   {

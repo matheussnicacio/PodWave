@@ -588,3 +588,49 @@ razão simples entre o que já foi enviado e o total, convertida para um
 número de 0 a 100 que vira diretamente a largura (`width`) da barra de
 progresso no template.
 
+
+# Checklists — Atividade Aula 08 (PodWave)
+
+> Projeto **Grupo A** (áudio + capa): os itens de streaming SE APLICAM.
+
+## PARTE A — Backend: Detalhe, Feed e Streaming
+- [x] `middlewares/optionalAuth.js` criado
+- [x] `getEpisodeDetails` / `getFeedEpisodes` adicionados ao service
+- [x] Controller e rota do detalhe criados, com `optionalAuth`
+- [x] Coluna de visualizações confirmada (`views`, criada no model)
+- [x] Rota de streaming criada, protegida por `isAuthenticated`
+- [x] `Content-Type` ajustado ao tipo real do arquivo (`audio/mpeg`)
+- [x] `getFeed` adicionado a `userController.js` / `userRoutes.js`
+
+### Checklist dos testes (executados com curl — ver `atividade08/LEIA-ME.md`)
+- [x] Detalhe sem token → 200, `isOwner: false`, views em 1
+- [x] Detalhe com token do dono → 200, `isOwner: true`, views em 2
+- [x] Detalhe de item inexistente → 404
+- [x] `/stream` sem token → 401; com token → 200/206; `/uploads/...` sem token → 200; `Range: bytes=0-1023` → 206 com `Content-Range` correto
+- [x] Feed sem token → 401
+- [x] Feed com token, `?page=1&limit=1` → um item só
+- [x] Feed com token, `?page=2&limit=1` → próximo item (ou `[]`)
+
+## PARTE B — Frontend: Feed e Detalhe com Dados Reais
+- [x] Funções de URL em `utils/media.js` (`getEpisodeAudioUrl`, `getEpisodeCoverUrl`)
+- [x] Classes de card adicionadas (capa 1:1)
+- [x] Classe de player adicionada (`.episode-player`)
+- [x] `getEpisodeById` e `getFeed` no `episodeService.js`
+- [x] Componente de card criado (`EpisodeCard.vue`)
+- [x] Tela de Feed com paginação "Carregar mais"
+- [x] Tela de Detalhe com `<audio>` apontando para o arquivo estático
+- [x] `isOwner` guardado no estado da tela
+
+### Checklist desta etapa (conferir no navegador — a fazer localmente)
+- [ ] Login → link "Feed" na Navbar → itens reais aparecendo
+- [ ] Clique num card → navega para o detalhe sem recarregar a página
+- [ ] Player reproduz e o seek funciona; Network mostra o caminho estático (não `/stream`) e ao menos um `206`
+- [ ] F5 no detalhe → `curl GET /api/episodes/:id` mostra views subindo
+- [ ] `/podcasts/999999` na URL → mensagem de erro, sem a tela quebrar
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [ ] Print `feed-real.jpg`
+- [ ] Print `detalhe-real.jpg`
+- [ ] Print `range-206.jpg` (aba Network)
+- [ ] Print de cada curl da Etapa 5 (rodar `testes-curl-atividade08.sh`)
+- [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)
