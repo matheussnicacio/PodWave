@@ -27,8 +27,8 @@ const { isAuthenticated, isAdmin } = useAuth()
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  border-right: 1px solid #26262e;
-  background-color: #121216;
+  border-right: 1px solid var(--pw-border);
+  background-color: var(--pw-surface-alt);
 }
 
 .sidebar a {

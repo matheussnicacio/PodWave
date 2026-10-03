@@ -40,11 +40,12 @@ async function handleLogout() {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #26262e;
-  background-color: #16161c;
+  border-bottom: 1px solid var(--pw-border);
+  background-color: var(--pw-surface);
 }
 
 .brand {
+  color: var(--podwave-brand);
   font-weight: bold;
   font-size: 1.25rem;
 }
