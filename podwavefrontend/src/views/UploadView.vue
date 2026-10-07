@@ -1,6 +1,5 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { createEpisode } from '../services/episodeService'
 import BaseInput from '../components/base/BaseInput.vue'
 import BaseButton from '../components/base/BaseButton.vue'
@@ -8,8 +7,6 @@ import FormCard from '../components/base/FormCard.vue'
 
 const TITLE_MAX = 100
 const DESCRIPTION_MAX = 500
-
-const router = useRouter()
 
 const form = reactive({
   title: '',
@@ -137,7 +134,6 @@ async function handleSubmit() {
       coverPreviewUrl.value = ''
     }
 
-    setTimeout(() => router.push({ name: 'my-podcasts' }), 1500)
   } catch (error) {
     apiErrorMessage.value = error.message
   } finally {
@@ -214,6 +210,7 @@ async function handleSubmit() {
       </div>
       <div v-if="successMessage" class="alert alert-success py-2" role="alert">
         {{ successMessage }}
+        <router-link :to="{ name: 'my-podcasts' }" class="alert-link ms-2">Ver em Meus Podcasts</router-link>
       </div>
 
       <BaseButton type="submit" :loading="isSubmitting">

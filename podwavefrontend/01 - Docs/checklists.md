@@ -634,3 +634,66 @@ progresso no template.
 - [ ] Print `range-206.jpg` (aba Network)
 - [ ] Print de cada curl da Etapa 5 (rodar `testes-curl-atividade08.sh`)
 - [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)
+
+# Checklists — Atividade Aula 09 (PodWave)
+
+Entidade: **Episode** · **Grupo A** (áudio + capa): na edição só a **capa** pode
+ser trocada; na exclusão os **dois** arquivos são apagados do disco.
+
+## PARTE A — Backend
+
+### Checklist das tarefas
+- [x] `reload()` no detalhe (já aplicado na Aula 08 — `getEpisodeDetails`)
+- [x] Duas chamadas seguidas ao detalhe devolvem contagens consecutivas
+- [x] Verificação `404` antes de `403`, nas duas funções que verificam dono (`getEpisodeForEdit`, `updateEpisode`/`deleteEpisode`, via `findOwnedEpisode`)
+- [x] Ordem banco → disco respeitada (`updateEpisode`, `deleteEpisode`)
+- [x] Contador do usuário decrementado na exclusão (`User.decrement('episodesCount')`)
+- [x] Quatro handlers no controller (`getMyEpisodes`, `getEpisodeForEdit`, `updateEpisode`, `deleteEpisode`)
+- [x] Quatro rotas, com Multer antes do validador no `PUT`
+- [x] `include` + `order` no nível de cima em `getPublicProfile`
+- [x] `isOwner` devolvido no perfil público
+- [x] `/profile/:username` com `optionalAuth`, depois de `/profile/me`
+- [x] `errorHandler.js` limpando arquivos órfãos e ainda sendo o último `app.use` do `app.js`
+
+### Checklist dos testes (rodados com MariaDB local — `testes-curl-atividade09.sh`)
+- [x] `GET /my-episodes`: sem token → `401`; com A → lista, mais novo primeiro; com B → `[]`
+- [x] `GET /episodes/:id/edit`: sem token → `401`; B → `403`; inexistente → `404`; A → `200` (views não muda)
+- [x] `PUT` só texto, A → `200`, capa inalterada, contagem de arquivos igual
+- [x] `PUT` com capa nova, A → `200`, nome da capa mudou, contagem igual (entrou uma, saiu outra)
+- [x] Órfãos: `PUT` com capa por B → `403`; `PUT` com capa e título vazio por A → `400`; contagem não sobe
+- [x] `DELETE`: B → `403`; A → `200`; GET → `404`; arquivos sumiram; contador caiu 1; repetir → `404`
+- [x] `GET /profile/:username`: anônimo (`isOwner:false`), dono (`true`), B (`false`), inexistente (`404`)
+
+## PARTE B — Frontend
+
+### Checklist das tarefas
+- [x] `useClickOutside.js` criado
+- [x] `BaseModal.vue` criado
+- [x] `getMyEpisodes()`, `getEpisodeForEdit(id)`, `updateEpisode(id, formData)`, `deleteEpisode(id)` criadas
+- [x] `getPublicProfile` criada
+- [x] Card sem `<a>` gigante, com autor clicável/opcional e slot `actions`
+- [x] O Feed da Atividade 08 continua usando o card sem alteração na tela
+- [x] Menu do avatar controlado por estado (alinha à direita; fecha fora / em item / Esc)
+- [x] Perfil Público com os três casos (dono / logado / visitante)
+- [x] Meus Podcasts com modal fora do card, `busy` e remoção local da lista
+- [x] Editar Episódio com e sem capa nova
+- [x] Autor clicável e botão "Editar" condicional no Detalhe
+- [x] Link para Meus Podcasts na mensagem de sucesso do Upload
+
+### Checklist dos testes
+- [x] `npm run build` concluído sem erros
+- [ ] Menu do avatar: abre, fecha fora, fecha com Esc, fecha ao escolher um item *(conferir no navegador)*
+- [ ] "Ver Perfil" / clique no autor de outra conta / "Seguir" / navegação sem recarregar *(idem)*
+- [ ] Janela anônima em `/profile/<username>` e username inexistente *(idem)*
+- [ ] Meus Podcasts: estado vazio, grade, modal de exclusão, exclusão sem recarregar *(idem)*
+- [ ] Edição: pré-preenchida, só texto, troca de capa, título vazio sem requisição *(idem)*
+- [ ] Network: `PUT` com `multipart/form-data; boundary=...` *(idem)*
+- [ ] Logado como B, URL de edição de item da A → mensagem de permissão; id inexistente → não encontrado *(idem)*
+- [ ] Deslogado em `/my-podcasts` → login e volta *(idem)*
+- [ ] Regressão: Feed, Detalhe, Upload, Meu Perfil, Login/Logout *(idem)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [ ] Prints em `01 - Docs/atividade09/`: `menu-avatar.jpg`, `perfil-publico.jpg`, `modal-exclusao.jpg`, `editar.jpg`
+- [ ] Print de cada bloco do `testes-curl-atividade09.sh` (inclui contagem de arquivos antes/depois)
+- [ ] Revisar `respostas.md` e reescrever com as suas palavras
+- [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)

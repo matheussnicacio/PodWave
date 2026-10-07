@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const episodeController = require('./episodeController');
-const { episodeUploadValidator } = require('./episodeValidator');
+const { episodeUploadValidator, episodeUpdateValidator } = require('./episodeValidator');
 const asyncHandler = require('../../middlewares/asyncHandler');
 const isAuthenticated = require('../../middlewares/auth');
 const optionalAuth = require('../../middlewares/optionalAuth');
@@ -27,6 +27,26 @@ router.post(
   episodeUploadValidator,
   asyncHandler(episodeController.uploadEpisode)
 );
+
+// Episódios do usuário logado.
+router.get('/my-episodes', isAuthenticated, asyncHandler(episodeController.getMyEpisodes));
+
+// Dados para o formulário de edição (só o dono: 404 se não existe, 403 se não é seu).
+router.get('/episodes/:id/edit', isAuthenticated, asyncHandler(episodeController.getEpisodeForEdit));
+
+// Edição: Multer ANTES do validador (mesma razão do POST: o multipart só vira
+// req.body depois do multer). single('cover'): só a capa pode ser trocada.
+// Se auth/validador/serviço falharem depois de o multer gravar a capa nova,
+// o errorHandler apaga esse arquivo órfão.
+router.put(
+  '/episodes/:id',
+  isAuthenticated,
+  episodeMulter.single('cover'),
+  episodeUpdateValidator,
+  asyncHandler(episodeController.updateEpisode)
+);
+
+router.delete('/episodes/:id', isAuthenticated, asyncHandler(episodeController.deleteEpisode));
 
 // Detalhe: PÚBLICO, mas com optionalAuth — tenta identificar o usuário (para
 // calcular isOwner) sem nunca devolver 401.

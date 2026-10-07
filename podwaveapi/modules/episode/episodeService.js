@@ -5,6 +5,7 @@ const User = require('../user/userModel');
 const { PAGINATION } = require('../../config/constants');
 
 const AUDIO_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'episodes', 'audio');
+const COVER_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'episodes', 'covers');
 
 // Include reaproveitado pelo detalhe e pelo feed: traz o autor junto do
 // episódio ("popula"), mas SÓ com as colunas públicas — password (e email)
@@ -19,6 +20,44 @@ function notFound() {
   const error = new Error('Episódio não encontrado.');
   error.status = 404;
   return error;
+}
+
+function forbidden() {
+  const error = new Error('Você não tem permissão para alterar este episódio.');
+  error.status = 403;
+  return error;
+}
+
+// Remove um arquivo do disco sem nunca lançar: roda DEPOIS de o banco já ter
+// sido atualizado, então uma falha aqui deixa, no pior caso, um arquivo
+// órfão (lixo) — nunca um registro apontando para um arquivo inexistente.
+async function removeFile(dir, filename) {
+  if (!filename) return;
+  try {
+    await fs.promises.unlink(path.join(dir, path.basename(filename)));
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error('Erro ao remover arquivo do disco:', filename, err);
+    }
+  }
+}
+
+// Carrega o episódio e aplica as duas verificações de dono, NESTA ordem:
+// 404 (existe?) antes de 403 (é seu?). Se fosse o contrário, o 403 revelaria
+// que o id existe e o 404 deixaria de ser a única resposta para "não existe".
+async function findOwnedEpisode(episodeId, userId) {
+  if (!/^\d+$/.test(String(episodeId))) {
+    throw notFound();
+  }
+
+  const episode = await Episode.findByPk(episodeId);
+  if (!episode) {
+    throw notFound();
+  }
+  if (episode.userId !== userId) {
+    throw forbidden();
+  }
+  return episode;
 }
 
 async function createEpisode(userId, { title, description, audioFilename, coverFilename }) {
@@ -78,6 +117,80 @@ async function getEpisodeDetails(episodeId, viewerId) {
     // true só se quem pediu está logado E é o autor do episódio.
     isOwner: viewerId !== undefined && viewerId === episode.userId
   };
+}
+
+/**
+ * Episódios do usuário logado, do mais novo para o mais antigo.
+ */
+async function getMyEpisodes(userId) {
+  return Episode.findAll({
+    where: { userId },
+    order: [['createdAt', 'DESC'], ['id', 'DESC']]
+  });
+}
+
+/**
+ * Dados para pré-preencher o formulário de edição. Só o dono. Não incrementa
+ * views: abrir a tela de edição não é "ouvir" o episódio.
+ */
+async function getEpisodeForEdit(episodeId, userId) {
+  const episode = await findOwnedEpisode(episodeId, userId);
+  return {
+    id: episode.id,
+    title: episode.title,
+    description: episode.description,
+    cover: episode.cover
+  };
+}
+
+/**
+ * Edita título/descrição e, opcionalmente, troca a capa.
+ * Ordem: valida dono -> atualiza o BANCO -> só então apaga a capa antiga do
+ * disco. Se o disco fosse apagado primeiro e o save falhasse, o registro
+ * continuaria apontando para um arquivo que não existe mais.
+ */
+async function updateEpisode(episodeId, userId, { title, description, newCoverFilename }) {
+  const episode = await findOwnedEpisode(episodeId, userId);
+
+  const oldCover = episode.cover;
+
+  episode.title = title;
+  episode.description = description || null;
+  if (newCoverFilename) {
+    episode.cover = newCoverFilename;
+  }
+  await episode.save();
+
+  if (newCoverFilename && oldCover && oldCover !== newCoverFilename) {
+    await removeFile(COVER_UPLOADS_DIR, oldCover);
+  }
+
+  return {
+    id: episode.id,
+    title: episode.title,
+    description: episode.description,
+    audio: episode.audio,
+    cover: episode.cover,
+    views: episode.views,
+    userId: episode.userId,
+    updatedAt: episode.updatedAt
+  };
+}
+
+/**
+ * Exclui o episódio: registro, contador do usuário e os DOIS arquivos.
+ * Banco primeiro, disco depois (mesmo motivo do updateEpisode).
+ */
+async function deleteEpisode(episodeId, userId) {
+  const episode = await findOwnedEpisode(episodeId, userId);
+
+  const { audio, cover } = episode;
+
+  await episode.destroy();
+  await User.decrement('episodesCount', { by: 1, where: { id: userId } });
+
+  await removeFile(AUDIO_UPLOADS_DIR, audio);
+  await removeFile(COVER_UPLOADS_DIR, cover);
 }
 
 /**
@@ -149,6 +262,10 @@ module.exports = {
   createEpisode,
   getEpisodeDetails,
   getFeedEpisodes,
+  getMyEpisodes,
+  getEpisodeForEdit,
+  updateEpisode,
+  deleteEpisode,
   parsePagination,
   getEpisodeAudioFile
 };

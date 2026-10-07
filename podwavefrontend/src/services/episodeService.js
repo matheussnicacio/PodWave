@@ -24,3 +24,26 @@ export function getEpisodeById(id) {
 export function getFeed(page = 1, limit = 8) {
   return api.get('/feed', { params: { page, limit } })
 }
+
+// Episódios do usuário logado (mais novo primeiro).
+export function getMyEpisodes() {
+  return api.get('/my-episodes')
+}
+
+// Dados para pré-preencher o formulário de edição (só o dono).
+export function getEpisodeForEdit(id) {
+  return api.get(`/episodes/${id}/edit`)
+}
+
+// Edição: multipart/form-data porque o corpo pode levar uma capa nova. A capa
+// só entra no FormData quando a pessoa escolheu uma; sem ela, a API mantém a
+// capa atual.
+export function updateEpisode(id, formData) {
+  return api.put(`/episodes/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
+export function deleteEpisode(id) {
+  return api.delete(`/episodes/${id}`)
+}

@@ -38,3 +38,10 @@ export function updateProfile(formData) {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
+
+// Perfil público de qualquer usuário, pelo username. A rota da API é pública
+// (optionalAuth): o interceptor anexa o token quando existe, e a API usa isso
+// só para calcular isOwner.
+export function getPublicProfile(username) {
+  return api.get(`/profile/${encodeURIComponent(username)}`)
+}

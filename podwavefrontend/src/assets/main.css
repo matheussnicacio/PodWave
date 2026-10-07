@@ -150,3 +150,40 @@
   width: 100%;
   margin-top: 1rem;
 }
+
+/* ---------- Aula 09: card refatorado, menu do avatar, perfil ---------- */
+
+/* O card agora é um <article>; só a capa e o título são links. */
+.episode-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.episode-card-link:hover {
+  color: var(--podwave-brand);
+}
+
+.episode-card-author {
+  color: inherit;
+  text-decoration: none;
+}
+
+.episode-card-author:hover {
+  color: var(--podwave-brand);
+  text-decoration: underline;
+}
+
+.episode-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.profile-avatar {
+  width: 112px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--pw-border);
+}

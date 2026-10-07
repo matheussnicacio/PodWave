@@ -30,6 +30,36 @@ exports.getEpisodeDetails = async (req, res) => {
   return success(res, episode);
 };
 
+// GET /api/my-episodes — episódios do usuário logado (mais novo primeiro).
+exports.getMyEpisodes = async (req, res) => {
+  const episodes = await episodeService.getMyEpisodes(req.user.id);
+  return success(res, episodes);
+};
+
+// GET /api/episodes/:id/edit — dados para pré-preencher o formulário (só dono).
+exports.getEpisodeForEdit = async (req, res) => {
+  const episode = await episodeService.getEpisodeForEdit(req.params.id, req.user.id);
+  return success(res, episode);
+};
+
+// PUT /api/episodes/:id — req.file só existe se uma capa nova foi enviada
+// (multer.single('cover')).
+exports.updateEpisode = async (req, res) => {
+  const { title, description } = req.body;
+  const updated = await episodeService.updateEpisode(req.params.id, req.user.id, {
+    title,
+    description,
+    newCoverFilename: req.file ? req.file.filename : undefined
+  });
+  return success(res, updated, 'Episódio atualizado com sucesso.');
+};
+
+// DELETE /api/episodes/:id
+exports.deleteEpisode = async (req, res) => {
+  await episodeService.deleteEpisode(req.params.id, req.user.id);
+  return success(res, null, 'Episódio excluído com sucesso.');
+};
+
 // GET /api/episodes/:id/stream — streaming com suporte a Range (206).
 //
 // Por que Range importa: um mp3 pode ter dezenas de MB. Sem Range, o servidor
