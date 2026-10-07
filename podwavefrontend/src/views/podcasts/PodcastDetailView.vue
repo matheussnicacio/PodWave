@@ -7,9 +7,9 @@ import { getEpisodeAudioUrl, getEpisodeCoverUrl, getProfilePictureUrl } from '..
 const route = useRoute()
 
 const episode = ref(null)
-// isOwner vem da API (true se o usuário logado é o autor). Fica guardado
-// no estado desde já, mesmo sem uso visual — os botões de editar/excluir
-// que dependem dele chegam na Aula 09.
+// isOwner vem da API (true se o usuário logado é o autor). Só decide se o
+// botão "Editar" aparece — esconder o botão NÃO é segurança: quem recusa uma
+// edição de não-dono é a API (403), mesmo que alguém digite a URL na mão.
 const isOwner = ref(false)
 const isLoading = ref(true)
 const errorMessage = ref('')
@@ -66,7 +66,7 @@ watch(() => route.params.id, (id) => loadEpisode(id), { immediate: true })
         <p class="text-secondary mb-2">
           <router-link
             v-if="episode.author"
-            :to="{ name: 'public-profile', params: { id: episode.author.username } }"
+            :to="{ name: 'public-profile', params: { username: episode.author.username } }"
             class="text-decoration-none"
           >
             <img
@@ -81,6 +81,14 @@ watch(() => route.params.id, (id) => loadEpisode(id), { immediate: true })
         </p>
 
         <p v-if="episode.description">{{ episode.description }}</p>
+
+        <router-link
+          v-if="isOwner"
+          :to="{ name: 'podcast-edit', params: { id: episode.id } }"
+          class="btn btn-outline-primary btn-sm mb-2"
+        >
+          <i class="bi bi-pencil"></i> Editar
+        </router-link>
 
         <!-- src aponta para o arquivo ESTÁTICO (/uploads/...), nunca para a
              rota /api/episodes/:id/stream: <audio> não consegue enviar o

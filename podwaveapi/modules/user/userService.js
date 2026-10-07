@@ -1,4 +1,5 @@
 const User = require('./userModel');
+const Episode = require('../episode/episodeModel');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
@@ -31,10 +32,17 @@ async function registerUser(username, email, password, fullName) {
   };
 }
 
-async function getPublicProfile(username) {
+async function getPublicProfile(username, viewerId) {
   const user = await User.findOne({
     where: { username },
-    attributes: ['id', 'username', 'fullName', 'bio', 'profilePicture', 'followersCount', 'followingCount', 'episodesCount']
+    attributes: ['id', 'username', 'fullName', 'bio', 'profilePicture', 'followersCount', 'followingCount', 'episodesCount'],
+    // Os episódios da pessoa vêm junto. A ordenação fica no nível de cima
+    // (order do findOne), referenciando o include: mais novo primeiro.
+    include: [{ model: Episode, as: 'episodes' }],
+    order: [
+      [{ model: Episode, as: 'episodes' }, 'createdAt', 'DESC'],
+      [{ model: Episode, as: 'episodes' }, 'id', 'DESC']
+    ]
   });
 
   if (!user) {
@@ -43,7 +51,11 @@ async function getPublicProfile(username) {
     throw error;
   }
 
-  return user;
+  return {
+    ...user.toJSON(),
+    // true só se quem pediu está logado E é a dona/o dono do perfil.
+    isOwner: viewerId !== undefined && viewerId === user.id
+  };
 }
 
 async function loginUser(email, password) {
@@ -65,6 +77,7 @@ async function loginUser(email, password) {
     username: user.username,
     email: user.email,
     fullName: user.fullName,
+    profilePicture: user.profilePicture,
     isAdmin: user.isAdmin
   };
 }

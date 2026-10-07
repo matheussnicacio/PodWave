@@ -40,7 +40,9 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/users/:id',
+    // Perfil público identificado pelo USERNAME (não pelo id numérico): é o
+    // que a API aceita em GET /api/profile/:username e o que aparece na URL.
+    path: '/profile/:username',
     name: 'public-profile',
     component: () => import('../views/profile/PublicProfileView.vue')
   },

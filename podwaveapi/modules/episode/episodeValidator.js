@@ -47,3 +47,20 @@ exports.episodeUploadValidator = [
     }),
   validate
 ];
+
+// PUT /episodes/:id: mesmos campos de texto do envio, mas SEM exigir arquivo —
+// a capa nova é opcional (sem ela, a capa atual é mantida). O áudio nunca
+// muda na edição: para trocar o áudio, exclui-se o episódio e envia-se outro.
+exports.episodeUpdateValidator = [
+  body('title')
+    .trim()
+    .notEmpty().withMessage('O título é obrigatório.')
+    .isLength({ max: VALIDATION.TITLE_MAX })
+    .withMessage(`O título deve ter no máximo ${VALIDATION.TITLE_MAX} caracteres.`),
+  body('description')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: VALIDATION.DESCRIPTION_MAX })
+    .withMessage(`A descrição deve ter no máximo ${VALIDATION.DESCRIPTION_MAX} caracteres.`),
+  validate
+];

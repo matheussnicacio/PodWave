@@ -5,6 +5,7 @@ const { registerValidator, loginValidator, profileUpdateValidator } = require('.
 const asyncHandler = require('../../middlewares/asyncHandler');
 const isAuthenticated = require('../../middlewares/auth');
 const profileMulter = require('../../middlewares/profileMulter');
+const optionalAuth = require('../../middlewares/optionalAuth');
 
 router.post('/register', registerValidator, asyncHandler(userController.register));
 router.post('/login', loginValidator, asyncHandler(userController.login));
@@ -31,6 +32,7 @@ router.put(
 // Feed geral paginado (?page=&limit=). Protegido: precisa de token.
 router.get('/feed', isAuthenticated, asyncHandler(userController.getFeed));
 
-router.get('/profile/:username', asyncHandler(userController.getPublicProfile));
+// Pública, com optionalAuth: identifica quem pede (para isOwner) sem nunca dar 401.
+router.get('/profile/:username', optionalAuth, asyncHandler(userController.getPublicProfile));
 
 module.exports = router;
