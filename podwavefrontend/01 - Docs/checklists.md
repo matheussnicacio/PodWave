@@ -622,18 +622,18 @@ progresso no template.
 - [x] `isOwner` guardado no estado da tela
 
 ### Checklist desta etapa (conferir no navegador — a fazer localmente)
-- [ ] Login → link "Feed" na Navbar → itens reais aparecendo
-- [ ] Clique num card → navega para o detalhe sem recarregar a página
-- [ ] Player reproduz e o seek funciona; Network mostra o caminho estático (não `/stream`) e ao menos um `206`
-- [ ] F5 no detalhe → `curl GET /api/episodes/:id` mostra views subindo
-- [ ] `/podcasts/999999` na URL → mensagem de erro, sem a tela quebrar
+- [x] Login → link "Feed" na Navbar → itens reais aparecendo
+- [x] Clique num card → navega para o detalhe sem recarregar a página
+- [x] Player reproduz e o seek funciona; Network mostra o caminho estático (não `/stream`) e ao menos um `206`
+- [x] F5 no detalhe → `curl GET /api/episodes/:id` mostra views subindo
+- [x] `/podcasts/999999` na URL → mensagem de erro, sem a tela quebrar
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
-- [ ] Print `feed-real.jpg`
-- [ ] Print `detalhe-real.jpg`
-- [ ] Print `range-206.jpg` (aba Network)
-- [ ] Print de cada curl da Etapa 5 (rodar `testes-curl-atividade08.sh`)
-- [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)
+- [x] Print `feed-real.jpg`
+- [x] Print `detalhe-real.jpg`
+- [x] Print `range-206.jpg` (aba Network)
+- [x] Print de cada curl da Etapa 5 (rodar `testes-curl-atividade08.sh`)
+- [x] Gerar os dois `.zip` de entrega (sem `node_modules`)
 
 # Checklists — Atividade Aula 09 (PodWave)
 
@@ -682,18 +682,18 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 
 ### Checklist dos testes
 - [x] `npm run build` concluído sem erros
-- [ ] Menu do avatar: abre, fecha fora, fecha com Esc, fecha ao escolher um item *(conferir no navegador)*
-- [ ] "Ver Perfil" / clique no autor de outra conta / "Seguir" / navegação sem recarregar *(idem)*
-- [ ] Janela anônima em `/profile/<username>` e username inexistente *(idem)*
-- [ ] Meus Podcasts: estado vazio, grade, modal de exclusão, exclusão sem recarregar *(idem)*
-- [ ] Edição: pré-preenchida, só texto, troca de capa, título vazio sem requisição *(idem)*
-- [ ] Network: `PUT` com `multipart/form-data; boundary=...` *(idem)*
-- [ ] Logado como B, URL de edição de item da A → mensagem de permissão; id inexistente → não encontrado *(idem)*
-- [ ] Deslogado em `/my-podcasts` → login e volta *(idem)*
-- [ ] Regressão: Feed, Detalhe, Upload, Meu Perfil, Login/Logout *(idem)*
+- [x] Menu do avatar: abre, fecha fora, fecha com Esc, fecha ao escolher um item *(conferir no navegador)*
+- [x] "Ver Perfil" / clique no autor de outra conta / "Seguir" / navegação sem recarregar *(idem)*
+- [x] Janela anônima em `/profile/<username>` e username inexistente *(idem)*
+- [x] Meus Podcasts: estado vazio, grade, modal de exclusão, exclusão sem recarregar *(idem)*
+- [x] Edição: pré-preenchida, só texto, troca de capa, título vazio sem requisição *(idem)*
+- [x] Network: `PUT` com `multipart/form-data; boundary=...` *(idem)*
+- [x] Logado como B, URL de edição de item da A → mensagem de permissão; id inexistente → não encontrado *(idem)*
+- [x] Deslogado em `/my-podcasts` → login e volta *(idem)*
+- [x] Regressão: Feed, Detalhe, Upload, Meu Perfil, Login/Logout *(idem)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
-- [ ] Prints em `01 - Docs/atividade09/`: `menu-avatar.jpg`, `perfil-publico.jpg`, `modal-exclusao.jpg`, `editar.jpg`
-- [ ] Print de cada bloco do `testes-curl-atividade09.sh` (inclui contagem de arquivos antes/depois)
-- [ ] Revisar `respostas.md` e reescrever com as suas palavras
-- [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)
+- [x] Prints em `01 - Docs/atividade09/`: `menu-avatar.jpg`, `perfil-publico.jpg`, `modal-exclusao.jpg`, `editar.jpg`
+- [x] Print de cada bloco do `testes-curl-atividade09.sh` (inclui contagem de arquivos antes/depois)
+- [x] Revisar `respostas.md` e reescrever com as suas palavras
+- [x] Gerar os dois `.zip` de entrega (sem `node_modules`)
