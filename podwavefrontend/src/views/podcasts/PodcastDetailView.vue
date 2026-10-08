@@ -3,6 +3,9 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getEpisodeById } from '../../services/episodeService'
 import { getEpisodeAudioUrl, getEpisodeCoverUrl, getProfilePictureUrl } from '../../utils/media'
+import { formatCount } from '../../utils/format'
+import LikeButton from '../../components/episodes/LikeButton.vue'
+import CommentSection from '../../components/episodes/CommentSection.vue'
 
 const route = useRoute()
 
@@ -11,6 +14,11 @@ const episode = ref(null)
 // botão "Editar" aparece — esconder o botão NÃO é segurança: quem recusa uma
 // edição de não-dono é a API (403), mesmo que alguém digite a URL na mão.
 const isOwner = ref(false)
+// isLiked vem da API (false para visitante). O LikeButton cuida do estado da
+// curtida depois disso; o Detalhe só guarda o contador de comentários, que
+// sobe quando a CommentSection avisa que um comentário foi criado.
+const isLiked = ref(false)
+const commentsCount = ref(0)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
@@ -21,9 +29,11 @@ async function loadEpisode(id) {
 
   try {
     const response = await getEpisodeById(id)
-    const { isOwner: owner, ...data } = response.data
+    const { isOwner: owner, isLiked: liked, ...data } = response.data
     episode.value = data
     isOwner.value = owner
+    isLiked.value = liked
+    commentsCount.value = data.commentsCount ?? 0
   } catch (err) {
     // id inexistente (404), rede fora do ar etc.: mostra a mensagem da API
     // em vez de deixar a tela quebrada/em branco.
@@ -77,8 +87,16 @@ watch(() => route.params.id, (id) => loadEpisode(id), { immediate: true })
               class="rounded-circle me-2"
             />{{ episode.author.fullName || episode.author.username }}
           </router-link>
-          <span class="ms-3"><i class="bi bi-headphones"></i> {{ episode.views }} reproduções</span>
+          <span class="ms-3"><i class="bi bi-headphones"></i> {{ formatCount(episode.views) }} reproduções</span>
+          <span class="ms-3"><i class="bi bi-chat"></i> {{ formatCount(commentsCount) }} comentários</span>
         </p>
+
+        <LikeButton
+          class="mb-3"
+          :episode-id="episode.id"
+          :initial-liked="isLiked"
+          :initial-count="episode.likesCount ?? 0"
+        />
 
         <p v-if="episode.description">{{ episode.description }}</p>
 
@@ -103,6 +121,10 @@ watch(() => route.params.id, (id) => loadEpisode(id), { immediate: true })
         >
           Seu navegador não suporta o elemento de áudio.
         </audio>
+      </div>
+
+      <div class="col-12">
+        <CommentSection :episode-id="episode.id" @created="commentsCount++" />
       </div>
     </div>
   </div>

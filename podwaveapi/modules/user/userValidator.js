@@ -16,10 +16,13 @@ const validate = (req, res, next) => {
 };
 
 exports.registerValidator = [
+  // .trim() sempre ANTES das checagens: o express-validator roda a cadeia na
+  // ordem escrita, então "   " só é recusado se já tiver sido aparado para
+  // "" quando notEmpty()/isLength() olham para o valor.
   body('username')
+    .trim()
     .isLength({ min: VALIDATION.USERNAME_MIN, max: VALIDATION.USERNAME_MAX })
-    .withMessage(`O nome de usuário deve ter entre ${VALIDATION.USERNAME_MIN} e ${VALIDATION.USERNAME_MAX} caracteres.`)
-    .trim(),
+    .withMessage(`O nome de usuário deve ter entre ${VALIDATION.USERNAME_MIN} e ${VALIDATION.USERNAME_MAX} caracteres.`),
   body('email')
     .isEmail()
     .withMessage('Por favor, insira um e-mail válido.')
@@ -35,8 +38,8 @@ exports.registerValidator = [
       return true;
     }),
   body('fullName')
-    .notEmpty().withMessage('O nome completo é obrigatório.')
-    .trim(),
+    .trim()
+    .notEmpty().withMessage('O nome completo é obrigatório.'),
   validate
 ];
 

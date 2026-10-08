@@ -40,6 +40,8 @@ var indexRouter = require('./routes/index');
 var searchRoutes = require('./modules/search/searchRoutes');
 var userRoutes = require('./modules/user/userRoutes');
 var episodeRoutes = require('./modules/episode/episodeRoutes');
+var likeRoutes = require('./modules/like/likeRoutes');
+var commentRoutes = require('./modules/comment/commentRoutes');
 var errorHandler = require('./middlewares/errorHandler');
 
 var app = express();
@@ -63,6 +65,8 @@ app.use('/api', indexRouter);
 app.use('/api', searchRoutes);
 app.use('/api', userRoutes);
 app.use('/api', episodeRoutes);
+app.use('/api', likeRoutes);
+app.use('/api', commentRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

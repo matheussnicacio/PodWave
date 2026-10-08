@@ -187,3 +187,86 @@
   border-radius: 50%;
   border: 1px solid var(--pw-border);
 }
+
+/* ---------- Aula 10: curtidas e comentários ---------- */
+
+/* Contadores do card (reproduções, curtidas, comentários) lado a lado. */
+.episode-card-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.like-button-wrapper {
+  display: inline-block;
+}
+
+.like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--pw-border);
+  border-radius: 999px;
+  background-color: var(--pw-surface);
+  color: var(--pw-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.like-button:hover {
+  border-color: #e0245e;
+  color: #e0245e;
+}
+
+.like-button:active {
+  transform: scale(0.96);
+}
+
+.like-button.is-liked {
+  border-color: #e0245e;
+  color: #e0245e;
+  background-color: rgba(224, 36, 94, 0.08);
+}
+
+.like-button-error {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: #dc3545;
+}
+
+.comment-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--pw-border);
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+
+.comment-author:hover {
+  color: var(--podwave-brand);
+  text-decoration: underline;
+}
+
+/* pre-wrap preserva as quebras de linha digitadas SEM usar v-html;
+   overflow-wrap evita que uma palavra gigante estoure o layout. */
+.comment-text {
+  margin: 0.15rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
