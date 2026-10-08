@@ -697,3 +697,69 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 - [x] Print de cada bloco do `testes-curl-atividade09.sh` (inclui contagem de arquivos antes/depois)
 - [x] Revisar `respostas.md` e reescrever com as suas palavras
 - [x] Gerar os dois `.zip` de entrega (sem `node_modules`)
+
+---
+
+# Checklists — Atividade Aula 10 (PodWave)
+
+## PARTE A — Backend
+
+### Checklist das tarefas
+- [x] `COMMENT_MAX` e as duas colunas de contador (`likesCount`, `commentsCount`) adicionadas
+- [x] Models `Like` e `Comment` criados, com o índice único composto no `Like`
+- [x] Associações nos dois sentidos (`config/associations.js`)
+- [x] Tabelas e colunas conferidas no banco (`likes`, `comments`, `likes_count`, `comments_count`)
+- [x] Módulo `like` completo (3 rotas) e registrado no `app.js`
+- [x] Módulo `comment` completo (2 rotas, validador com `trim` primeiro) e registrado
+- [x] Todas as escritas duplas (linha + contador) dentro de transação, com `{ transaction: t }` em todos os comandos
+- [x] Ordem `(userId, episodeId, content)` igual entre controller e service
+- [x] Comentário criado devolvido com o autor
+- [x] Detalhe devolvendo `isLiked` (e os contadores)
+- [x] Exclusão em transação, com limpeza de curtidas e comentários
+- [x] Contadores no perfil público (episódios incluídos trazem `likesCount`/`commentsCount`)
+- [x] `trim()` movido para o início nos campos obrigatórios (`username`, `fullName`)
+
+### Checklist dos testes (rodados com MariaDB local — `testes-curl-atividade10.sh`)
+- [x] Curtir sem token → `401`; episódio inexistente → `404`
+- [x] B curte → `201`, `liked: true`, contador 1; B de novo → `200`, `liked: false`, 0; de novo → `201`, 1; A curte → 2
+- [x] `like-status` (com e sem token) e `isLiked` no detalhe: visitante `false`; B `true`
+- [x] Inserção manual de curtida repetida no banco → recusada (`Duplicate entry ... idx_unique_like_user_episode`)
+- [x] `liked-episodes` com B → itens com autor; sem token → `401`
+- [x] Comentar: sem token `401`; só espaços `400`; 501 caracteres `400`; episódio inexistente `404`; sucesso `201` com texto aparado e autor
+- [x] Listar comentários sem token → `200`, mais novos primeiro; contador do detalhe igual ao número de itens
+- [x] Excluir episódio com curtidas e comentários → `200`; nenhuma linha restante em `likes`/`comments`; arquivo removido; contador do usuário decrementado
+- [x] Título só com espaços → `400` (script Python no bloco 09); registro com `username`/`fullName` só de espaços → `400`
+- [x] Regressão: upload, detalhe, exclusão e perfil funcionando (usados no próprio script)
+
+## PARTE B — Frontend
+
+### Checklist das tarefas
+- [x] Dois services (`likeService.js`, `commentService.js`)
+- [x] Formatador `utils/format.js`
+- [x] CSS (seção Aula 10 em `main.css`)
+- [x] `LikeButton` com atualização otimista, rollback e `isBusy`
+- [x] Visitante é levado ao login e volta (`?redirect=`)
+- [x] Lista com carregando/erro/vazio; formulário validado
+- [x] Comentário novo no topo, sem recarregar a lista
+- [x] Texto escapado (`{{ }}`) e quebras de linha preservadas (`pre-wrap`)
+- [x] Detalhe com curtir + comentários
+- [x] Contadores no card
+- [x] Tela de itens curtidos com rota (`/liked`) e acessível por um clique (Sidebar e menu do avatar)
+
+### Checklist dos testes
+- [x] `npm run build` concluído sem erros
+- [ ] Visitante (janela anônima): vê botão e lista, sem formulário; curtir leva ao login e volta ao detalhe *(conferir no navegador)*
+- [ ] Logado: curtir muda o coração na hora; F5 mantém; descurtir desfaz *(idem)*
+- [ ] DevTools → Slow 4G: coração muda imediatamente; Offline: muda, volta atrás e mostra o erro *(idem)*
+- [ ] Comentar: vazio, só espaços e > 500 geram erro sem chamar a API; comentário de duas linhas aparece no topo com as linhas preservadas e o contador sobe *(idem)*
+- [ ] `<b>teste</b> <img src=x onerror="alert(1)">` aparece como texto, sem negrito e sem alerta *(idem)*
+- [ ] Contadores nos cards do Feed, Perfil e Meus Podcasts *(idem)*
+- [ ] Itens curtidos pelo menu/Sidebar; descurtir no detalhe tira da lista *(idem)*
+- [ ] Como A, excluir item com curtidas e comentários → some da lista de curtidos de B *(idem)*
+- [ ] Regressão: Feed, Perfil, Meus Podcasts (editar/excluir), Upload, Login/Logout *(idem)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [ ] Prints em `01 - Docs/atividade10/`: `detalhe-interacao.jpg`, `otimista.jpg`, `rollback.jpg`, `curtidos.jpg`, `unique.jpg`
+- [ ] Print de cada bloco do `testes-curl-atividade10.sh`
+- [ ] Revisar `respostas.md` e reescrever com as suas palavras
+- [ ] Conferir os testes de navegador acima e marcá-los

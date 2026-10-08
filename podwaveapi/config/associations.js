@@ -1,5 +1,7 @@
 const User = require('../modules/user/userModel');
 const Episode = require('../modules/episode/episodeModel');
+const Like = require('../modules/like/likeModel');
+const Comment = require('../modules/comment/commentModel');
 
 // Por que declarar a associação explicitamente para o Sequelize:
 // a FK userId já existe como coluna comum no episodeModel.js, mas, sem as
@@ -27,4 +29,18 @@ const Episode = require('../modules/episode/episodeModel');
 User.hasMany(Episode, { foreignKey: 'userId', as: 'episodes' });
 Episode.belongsTo(User, { foreignKey: 'userId', as: 'author' });
 
-module.exports = { User, Episode };
+// Aula 10 — curtidas e comentários. Associações nos DOIS sentidos (hasMany +
+// belongsTo) para cada par: é o que permite tanto Like.findAll({ include:
+// episode }) quanto Episode.findAll({ include: comments }) e cria as FKs de
+// verdade no banco.
+User.hasMany(Like, { foreignKey: 'userId', as: 'likes', onDelete: 'CASCADE' });
+Like.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Episode.hasMany(Like, { foreignKey: 'episodeId', as: 'likes', onDelete: 'CASCADE' });
+Like.belongsTo(Episode, { foreignKey: 'episodeId', as: 'episode' });
+
+User.hasMany(Comment, { foreignKey: 'userId', as: 'comments', onDelete: 'CASCADE' });
+Comment.belongsTo(User, { foreignKey: 'userId', as: 'author' });
+Episode.hasMany(Comment, { foreignKey: 'episodeId', as: 'comments', onDelete: 'CASCADE' });
+Comment.belongsTo(Episode, { foreignKey: 'episodeId', as: 'episode' });
+
+module.exports = { User, Episode, Like, Comment };

@@ -1,7 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const sequelize = require('../../config/database');
 const Episode = require('./episodeModel');
 const User = require('../user/userModel');
+const Like = require('../like/likeModel');
+const Comment = require('../comment/commentModel');
 const { PAGINATION } = require('../../config/constants');
 
 const AUDIO_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'episodes', 'audio');
@@ -61,20 +64,22 @@ async function findOwnedEpisode(episodeId, userId) {
 }
 
 async function createEpisode(userId, { title, description, audioFilename, coverFilename }) {
-  const newEpisode = await Episode.create({
-    title,
-    description: description || null,
-    audio: audioFilename,
-    cover: coverFilename,
-    userId
-  });
+  // Escrita dupla (episódio + contador do usuário) em UMA transação: ou as
+  // duas acontecem ou nenhuma. increment() gera um UPDATE atômico no banco
+  // (episodes_count = episodes_count + 1), sem ler-somar-salvar em memória.
+  // Todo comando leva { transaction: t }.
+  const newEpisode = await sequelize.transaction(async (t) => {
+    const created = await Episode.create({
+      title,
+      description: description || null,
+      audio: audioFilename,
+      cover: coverFilename,
+      userId
+    }, { transaction: t });
 
-  // Contador do usuário (Aula 03) incrementado a cada episódio publicado
-  // com sucesso. increment() gera um UPDATE atômico direto no banco
-  // (episodes_count = episodes_count + 1), em vez de ler o valor, somar em
-  // memória e salvar de volta — evita perder incrementos concorrentes se
-  // o mesmo usuário publicar dois episódios em paralelo.
-  await User.increment('episodesCount', { by: 1, where: { id: userId } });
+    await User.increment('episodesCount', { by: 1, where: { id: userId }, transaction: t });
+    return created;
+  });
 
   return {
     id: newEpisode.id,
@@ -83,6 +88,8 @@ async function createEpisode(userId, { title, description, audioFilename, coverF
     audio: newEpisode.audio,
     cover: newEpisode.cover,
     views: newEpisode.views,
+    likesCount: newEpisode.likesCount,
+    commentsCount: newEpisode.commentsCount,
     userId: newEpisode.userId,
     createdAt: newEpisode.createdAt
   };
@@ -112,10 +119,23 @@ async function getEpisodeDetails(episodeId, viewerId) {
   // (e mantém o include do autor).
   await episode.reload();
 
+  // isLiked: visitante (viewerId undefined) é sempre false; logado consulta
+  // a tabela de curtidas. likesCount/commentsCount já vêm em toJSON(), pois
+  // são colunas do próprio episódio.
+  let isLiked = false;
+  if (viewerId !== undefined) {
+    const like = await Like.findOne({
+      where: { userId: viewerId, episodeId: episode.id },
+      attributes: ['id']
+    });
+    isLiked = like !== null;
+  }
+
   return {
     ...episode.toJSON(),
     // true só se quem pediu está logado E é o autor do episódio.
-    isOwner: viewerId !== undefined && viewerId === episode.userId
+    isOwner: viewerId !== undefined && viewerId === episode.userId,
+    isLiked
   };
 }
 
@@ -172,22 +192,33 @@ async function updateEpisode(episodeId, userId, { title, description, newCoverFi
     audio: episode.audio,
     cover: episode.cover,
     views: episode.views,
+    likesCount: episode.likesCount,
+    commentsCount: episode.commentsCount,
     userId: episode.userId,
     updatedAt: episode.updatedAt
   };
 }
 
 /**
- * Exclui o episódio: registro, contador do usuário e os DOIS arquivos.
- * Banco primeiro, disco depois (mesmo motivo do updateEpisode).
+ * Exclui o episódio: curtidas, comentários, registro e contador do usuário —
+ * tudo numa ÚNICA transação — e depois os DOIS arquivos do disco.
+ *
+ * Por que limpar likes/comments explicitamente: sem isso, as linhas ficariam
+ * "penduradas" apontando para um episódio que não existe mais (ou o banco
+ * recusaria o DELETE por causa da FK). Banco primeiro, disco depois: se a
+ * transação falhar, nada foi apagado e os arquivos continuam intactos.
  */
 async function deleteEpisode(episodeId, userId) {
   const episode = await findOwnedEpisode(episodeId, userId);
 
   const { audio, cover } = episode;
 
-  await episode.destroy();
-  await User.decrement('episodesCount', { by: 1, where: { id: userId } });
+  await sequelize.transaction(async (t) => {
+    await Like.destroy({ where: { episodeId: episode.id }, transaction: t });
+    await Comment.destroy({ where: { episodeId: episode.id }, transaction: t });
+    await episode.destroy({ transaction: t });
+    await User.decrement('episodesCount', { by: 1, where: { id: userId }, transaction: t });
+  });
 
   await removeFile(AUDIO_UPLOADS_DIR, audio);
   await removeFile(COVER_UPLOADS_DIR, cover);

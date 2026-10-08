@@ -78,6 +78,9 @@ async function handleLogout() {
             <router-link to="/my-podcasts" role="menuitem" @click="closeMenu">
               <i class="bi bi-mic"></i> Meus Podcasts
             </router-link>
+            <router-link to="/liked" role="menuitem" @click="closeMenu">
+              <i class="bi bi-heart"></i> Curtidos
+            </router-link>
             <hr class="my-1" />
             <button type="button" class="menu-logout" role="menuitem" @click="handleLogout">
               <i class="bi bi-box-arrow-right"></i> Sair

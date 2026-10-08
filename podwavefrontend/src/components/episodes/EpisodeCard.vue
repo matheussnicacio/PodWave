@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { getEpisodeCoverUrl } from '../../utils/media'
+import { formatCount } from '../../utils/format'
 
 // Card reutilizável de um episódio. Recebe o episódio já no formato devolvido
 // pela API e não faz nenhuma chamada de rede: só exibe.
@@ -49,8 +50,10 @@ const authorName = computed(() => author.value?.fullName || author.value?.userna
         >{{ authorName }}</router-link>
       </p>
 
-      <p class="episode-card-meta">
-        <i class="bi bi-headphones"></i> {{ episode.views }}
+      <p class="episode-card-meta episode-card-stats">
+        <span title="Reproduções"><i class="bi bi-headphones"></i> {{ formatCount(episode.views) }}</span>
+        <span title="Curtidas"><i class="bi bi-heart"></i> {{ formatCount(episode.likesCount) }}</span>
+        <span title="Comentários"><i class="bi bi-chat"></i> {{ formatCount(episode.commentsCount) }}</span>
       </p>
 
       <div v-if="$slots.actions" class="episode-card-actions">

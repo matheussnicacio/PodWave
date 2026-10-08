@@ -14,6 +14,7 @@ const { isAuthenticated, isAdmin } = useAuth()
   <aside class="sidebar">
     <template v-if="isAuthenticated">
       <router-link to="/my-podcasts"><i class="bi bi-mic"></i> Meus Podcasts</router-link>
+      <router-link to="/liked"><i class="bi bi-heart"></i> Curtidos</router-link>
       <router-link to="/notifications"><i class="bi bi-bell"></i> Notificações</router-link>
       <router-link v-if="isAdmin" to="/admin"><i class="bi bi-shield-lock"></i> Admin</router-link>
     </template>

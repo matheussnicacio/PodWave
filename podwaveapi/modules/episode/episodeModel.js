@@ -25,6 +25,14 @@ const Episode = sequelize.define('Episode',
     // do app.js a cria sozinho na tabela já existente (defaultValue 0 faz os
     // episódios antigos começarem em 0).
     views: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    // Contadores GUARDADOS (Aula 10): likesCount e commentsCount ficam na
+    // própria linha do episódio para o Feed não precisar de COUNT(*) em
+    // cada card. O risco de um contador guardado é divergir da realidade
+    // (a linha da curtida entra, mas o contador não sobe — ou vice-versa);
+    // por isso toda escrita dupla (linha + contador) roda dentro de uma
+    // transação. Colunas novas: o sync({ alter: true }) as cria sozinho.
+    likesCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    commentsCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     userId: { type: DataTypes.INTEGER, allowNull: false }
   },
   {

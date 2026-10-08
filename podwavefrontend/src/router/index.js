@@ -34,6 +34,13 @@ const routes = [
   },
 
   {
+    path: '/liked',
+    name: 'liked-episodes',
+    component: () => import('../views/podcasts/LikedEpisodesView.vue'),
+    meta: { requiresAuth: true }
+  },
+
+  {
     path: '/profile',
     name: 'my-profile',
     component: () => import('../views/profile/MyProfileView.vue'),

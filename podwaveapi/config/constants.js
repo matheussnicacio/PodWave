@@ -20,7 +20,11 @@ module.exports = {
     // Descrição do episódio (episodeModel.js define description como
     // DataTypes.STRING(500)). Mesmo raciocínio do BIO_MAX: constante própria,
     // não compartilhada com nenhum outro campo de texto longo.
-    DESCRIPTION_MAX: 500
+    DESCRIPTION_MAX: 500,
+    // Comentário (commentModel.js define content como DataTypes.STRING(500)).
+    // Constante própria, pelo mesmo motivo de BIO_MAX: cada campo muda de
+    // tamanho de forma independente.
+    COMMENT_MAX: 500
   },
   // Paginação do Feed (GET /api/feed?page=&limit=). LIMIT_MAX evita que um
   // cliente peça ?limit=100000 e force o banco a devolver a tabela inteira.
