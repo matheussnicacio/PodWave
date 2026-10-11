@@ -748,18 +748,18 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 
 ### Checklist dos testes
 - [x] `npm run build` concluído sem erros
-- [ ] Visitante (janela anônima): vê botão e lista, sem formulário; curtir leva ao login e volta ao detalhe *(conferir no navegador)*
-- [ ] Logado: curtir muda o coração na hora; F5 mantém; descurtir desfaz *(idem)*
-- [ ] DevTools → Slow 4G: coração muda imediatamente; Offline: muda, volta atrás e mostra o erro *(idem)*
-- [ ] Comentar: vazio, só espaços e > 500 geram erro sem chamar a API; comentário de duas linhas aparece no topo com as linhas preservadas e o contador sobe *(idem)*
-- [ ] `<b>teste</b> <img src=x onerror="alert(1)">` aparece como texto, sem negrito e sem alerta *(idem)*
-- [ ] Contadores nos cards do Feed, Perfil e Meus Podcasts *(idem)*
-- [ ] Itens curtidos pelo menu/Sidebar; descurtir no detalhe tira da lista *(idem)*
-- [ ] Como A, excluir item com curtidas e comentários → some da lista de curtidos de B *(idem)*
-- [ ] Regressão: Feed, Perfil, Meus Podcasts (editar/excluir), Upload, Login/Logout *(idem)*
+- [x] Visitante (janela anônima): vê botão e lista, sem formulário; curtir leva ao login e volta ao detalhe *(conferir no navegador)*
+- [x] Logado: curtir muda o coração na hora; F5 mantém; descurtir desfaz *(idem)*
+- [x] DevTools → Slow 4G: coração muda imediatamente; Offline: muda, volta atrás e mostra o erro *(idem)*
+- [x] Comentar: vazio, só espaços e > 500 geram erro sem chamar a API; comentário de duas linhas aparece no topo com as linhas preservadas e o contador sobe *(idem)*
+- [x] `<b>teste</b> <img src=x onerror="alert(1)">` aparece como texto, sem negrito e sem alerta *(idem)*
+- [x] Contadores nos cards do Feed, Perfil e Meus Podcasts *(idem)*
+- [x] Itens curtidos pelo menu/Sidebar; descurtir no detalhe tira da lista *(idem)*
+- [x] Como A, excluir item com curtidas e comentários → some da lista de curtidos de B *(idem)*
+- [x] Regressão: Feed, Perfil, Meus Podcasts (editar/excluir), Upload, Login/Logout *(idem)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
-- [ ] Prints em `01 - Docs/atividade10/`: `detalhe-interacao.jpg`, `otimista.jpg`, `rollback.jpg`, `curtidos.jpg`, `unique.jpg`
-- [ ] Print de cada bloco do `testes-curl-atividade10.sh`
-- [ ] Revisar `respostas.md` e reescrever com as suas palavras
-- [ ] Conferir os testes de navegador acima e marcá-los
+- [x] Prints em `01 - Docs/atividade10/`: `detalhe-interacao.jpg`, `otimista.jpg`, `rollback.jpg`, `curtidos.jpg`, `unique.jpg`
+- [x] Print de cada bloco do `testes-curl-atividade10.sh`
+- [x] Revisar `respostas.md` e reescrever com as suas palavras
+- [x] Conferir os testes de navegador acima e marcá-los
