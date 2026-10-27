@@ -2,6 +2,7 @@ const User = require('../modules/user/userModel');
 const Episode = require('../modules/episode/episodeModel');
 const Like = require('../modules/like/likeModel');
 const Comment = require('../modules/comment/commentModel');
+const Follow = require('../modules/follow/followModel');
 
 // Por que declarar a associação explicitamente para o Sequelize:
 // a FK userId já existe como coluna comum no episodeModel.js, mas, sem as
@@ -43,4 +44,14 @@ Comment.belongsTo(User, { foreignKey: 'userId', as: 'author' });
 Episode.hasMany(Comment, { foreignKey: 'episodeId', as: 'comments', onDelete: 'CASCADE' });
 Comment.belongsTo(Episode, { foreignKey: 'episodeId', as: 'episode' });
 
-module.exports = { User, Episode, Like, Comment };
+// Aula 11 — seguir pessoas. Follow liga User a User: as DUAS FKs apontam para
+// a mesma tabela, então cada belongsTo precisa de um apelido (`as`). É o
+// apelido que diz ao `include` qual das duas colunas usar:
+//   include { as: 'Follower'  } -> a pessoa de follower_id  (quem segue)
+//   include { as: 'Following' } -> a pessoa de following_id (quem é seguido)
+// Só belongsTo (sem hasMany em User): a lista de seguidores/seguindo é sempre
+// consultada a partir de Follow, então o outro sentido não é necessário.
+Follow.belongsTo(User, { as: 'Follower', foreignKey: 'followerId', onDelete: 'CASCADE' });
+Follow.belongsTo(User, { as: 'Following', foreignKey: 'followingId', onDelete: 'CASCADE' });
+
+module.exports = { User, Episode, Like, Comment, Follow };

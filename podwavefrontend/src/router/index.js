@@ -53,6 +53,29 @@ const routes = [
     name: 'public-profile',
     component: () => import('../views/profile/PublicProfileView.vue')
   },
+  // Aula 11 — seguir pessoas. UMA tela (FollowListView) para as DUAS listas:
+  // a rota entrega `kind` por props e a tela decide qual lista buscar. São
+  // públicas, como o perfil.
+  {
+    path: '/profile/:username/followers',
+    name: 'followers',
+    component: () => import('../views/profile/FollowListView.vue'),
+    props: { kind: 'followers' }
+  },
+  {
+    path: '/profile/:username/following',
+    name: 'following-list',
+    component: () => import('../views/profile/FollowListView.vue'),
+    props: { kind: 'following' }
+  },
+  // Feed de quem eu sigo. O path é o MESMO do item "Seguindo" da Sidebar.
+  {
+    path: '/following',
+    name: 'following-feed',
+    component: () => import('../views/FollowingFeedView.vue'),
+    meta: { requiresAuth: true }
+  },
+
   {
     path: '/notifications',
     name: 'notifications',

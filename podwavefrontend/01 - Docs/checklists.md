@@ -763,3 +763,66 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 - [x] Print de cada bloco do `testes-curl-atividade10.sh`
 - [x] Revisar `respostas.md` e reescrever com as suas palavras
 - [x] Conferir os testes de navegador acima e marcá-los
+
+---
+
+# Checklists — Atividade Aula 11 (PodWave)
+
+## PARTE A — Backend
+
+### Checklist das tarefas
+- [x] `followModel.js` criado, com o índice único composto `(follower_id, following_id)` e o índice simples em `following_id`
+- [x] Associações com apelidos (`Follower` / `Following`) declaradas em `config/associations.js`
+- [x] Tabela e índices conferidos no banco (`follows`: `idx_unique_follow_follower_following`, `idx_follow_following` e as duas FKs)
+- [x] Três arquivos do módulo `follow` (service, controller, routes), registrados no `app.js` antes do 404 e do `errorHandler`
+- [x] `parseUserId` convertendo o id na borda (400 para não-inteiro-positivo)
+- [x] Três escritas (linha + dois contadores) numa só transação, todas com `{ transaction: t }`
+- [x] `followersCount` sobe no **seguido**; `followingCount` sobe em **quem segue**
+- [x] Feed filtrado com `Op.in`, paginado, devolvendo `[]` para quem não segue ninguém
+- [x] `isFollowing` no perfil público (só consultado se há logado e não é o dono)
+
+### Checklist dos testes (rodados com MariaDB local — `testes-curl-atividade11.sh`)
+- [x] `toggle-follow` sem token → `401`; id `abc` → `400`; seguir a si mesmo → `400`; usuário `99999` → `404`
+- [x] A segue B → `201`, `followersCount: 1`; A de novo → `200`, `0`; de novo → `201`, `1`; C segue B → `2`; B segue A
+- [x] Contadores dos dois lados: B com 2 seguidores e 1 seguindo; A com 1 e 1; C com 0 e 1
+- [x] `follow-status` e `isFollowing`: visitante `false`; A vendo B `true`; C vendo A `false`; B vendo B `false` (`isOwner: true`)
+- [x] `followers` de B (C e A, mais recente primeiro); `following` de A; sem `password`; inexistente `404`
+- [x] Feed filtrado: sem token `401`; A vê só os itens de B; `?page=2&limit=1` → `[]`; conta que não segue ninguém → `[]`
+- [x] Linha repetida em `follows` inserida à mão → recusada (`Duplicate entry ... idx_unique_follow_follower_following`)
+- [x] Regressão: curtir, comentar e `GET /feed` (no próprio script, bloco 09)
+- [x] Extra: 8 cliques simultâneos do mesmo par e 60 requisições cruzadas A↔B → sem `500`/`409`, sem contador negativo, contadores = nº de linhas
+
+## PARTE B — Frontend
+
+### Checklist da checagem de alcançabilidade (ADR-012)
+- [x] Seguir/deixar de seguir → botão no perfil público (visitante → login → volta)
+- [x] Listas → números do perfil viram links; abas entre as duas listas; link de volta
+- [x] Feed filtrado → item **Seguindo** da Sidebar. O `TheSidebar.vue` **não tinha** esse item: foi criado junto com a rota `/following` (mesmo path nos dois arquivos)
+
+### Checklist das tarefas
+- [x] `followService.js` criado
+- [x] `FollowButton` com `defineModel` (`following`, `followersCount`), otimista, com rollback e `isBusy`
+- [x] Sem a leitura "logo após atribuir" (variável local `nowFollowing`)
+- [x] Perfil público: botão ativo ligado por `v-model:following` e `v-model:followers-count`; contador do cartão muda junto
+- [x] Números "Seguidores"/"Seguindo" do perfil viram `router-link`s
+- [x] `FollowListView`: uma tela, duas rotas (`props: { kind }`), abas, estados vazios com o nome da pessoa
+- [x] Feed filtrado com rota (`/following`, `requiresAuth`), "Carregar mais" e estado vazio com link para o Feed
+- [x] `npm run build` concluído sem erros
+
+### Checklist dos testes
+- [x] Comportamento do `FollowButton` + cartão verificado com teste de componente descartável (jsdom): otimista (botão e contador mudam antes da resposta), valor do servidor prevalece, contador nunca vai a `-1`, rollback com mensagem, `isBusy` (1 chamada), visitante → `/login?redirect=…` sem chamar a API
+- [ ] Visitante (janela anônima): o botão aparece; o clique leva ao login e volta ao perfil depois de entrar *(conferir no navegador)*
+- [ ] Logado: "Seguir" muda botão e contador do cartão na hora; F5 mantém; "Seguindo" desfaz *(idem)*
+- [ ] DevTools → Slow 4G: mudança instantânea. Offline: muda, volta atrás e mostra o erro *(idem)*
+- [ ] No seu perfil não há botão de seguir; os números são links *(idem)*
+- [ ] Seguidores → Seguindo (aba) sem recarregar; clicar em uma pessoa leva ao perfil; usuário inexistente mostra o erro; listas vazias mostram a mensagem *(idem)*
+- [ ] Trocar de uma pessoa que você segue para uma que não segue: o botão reflete a pessoa nova *(idem)*
+- [ ] Pela Sidebar, abrir o feed filtrado: só itens de quem você segue; deixar de seguir e conferir que os itens saíram *(idem)*
+- [ ] Regressão: Perfil (editar, itens), Feed, Detalhe (curtir/comentar), Meus Podcasts, Curtidos, Login/Logout *(idem)*
+
+## Pendências que dependem de você (não automatizáveis por aqui)
+- [ ] Prints em `01 - Docs/atividade11/`: `seguindo.jpg`, `otimista.jpg`, `rollback.jpg`, `seguidores.jpg`, `feed-seguindo.jpg`, `follows.jpg`
+- [ ] Print de cada bloco do `testes-curl-atividade11.sh`
+- [ ] Conferir os testes de navegador acima e marcá-los
+- [ ] Revisar `respostas.md` e reescrever com as suas palavras
+- [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)

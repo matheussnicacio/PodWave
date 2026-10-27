@@ -1,10 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const { Op } = require('sequelize');
 const sequelize = require('../../config/database');
 const Episode = require('./episodeModel');
 const User = require('../user/userModel');
 const Like = require('../like/likeModel');
 const Comment = require('../comment/commentModel');
+const Follow = require('../follow/followModel');
 const { PAGINATION } = require('../../config/constants');
 
 const AUDIO_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'episodes', 'audio');
@@ -245,6 +247,43 @@ async function getFeedEpisodes({ page, limit }) {
 }
 
 /**
+ * Uma página do feed de QUEM EU SIGO: os mesmos episódios do feed geral, só
+ * que filtrados pelos autores que `userId` segue.
+ *
+ * Dois passos:
+ *  1) Follow.findAll com attributes: ['followingId'] -> só a coluna que
+ *     interessa, e um .map para um array de NÚMEROS (ids dos seguidos);
+ *  2) o mesmo findAll do feed geral, com where userId IN (ids).
+ *
+ * Por que devolve [] logo no início quando o usuário não segue ninguém:
+ * `{ [Op.in]: [] }` vira `IN ()`, que é uma consulta sem sentido (e, conforme
+ * a versão/dialeto, SQL inválido). Sem seguidos, o resultado só pode ser
+ * "nenhum item" — então nem precisamos consultar os episódios. O front
+ * entende [] como "não há mais itens" e mostra o estado vazio.
+ */
+async function getFollowingEpisodes(userId, page, limit) {
+  const follows = await Follow.findAll({
+    where: { followerId: userId },
+    attributes: ['followingId']
+  });
+  const followedIds = follows.map((follow) => follow.followingId);
+
+  if (followedIds.length === 0) {
+    return [];
+  }
+
+  const offset = (page - 1) * limit;
+
+  return Episode.findAll({
+    where: { userId: { [Op.in]: followedIds } },
+    include: [AUTHOR_INCLUDE],
+    order: [['createdAt', 'DESC'], ['id', 'DESC']],
+    limit,
+    offset
+  });
+}
+
+/**
  * Normaliza ?page= e ?limit=: valores ausentes, não numéricos, zero ou
  * negativos caem no padrão; limit é limitado a PAGINATION.LIMIT_MAX.
  */
@@ -293,6 +332,7 @@ module.exports = {
   createEpisode,
   getEpisodeDetails,
   getFeedEpisodes,
+  getFollowingEpisodes,
   getMyEpisodes,
   getEpisodeForEdit,
   updateEpisode,

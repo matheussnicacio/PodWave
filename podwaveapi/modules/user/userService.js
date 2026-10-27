@@ -1,5 +1,6 @@
 const User = require('./userModel');
 const Episode = require('../episode/episodeModel');
+const Follow = require('../follow/followModel');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
@@ -51,10 +52,25 @@ async function getPublicProfile(username, viewerId) {
     throw error;
   }
 
+  const isOwner = viewerId !== undefined && viewerId === user.id;
+
+  // isFollowing: só vale consultar a tabela quando há alguém logado E essa
+  // pessoa não é a dona do perfil (ninguém segue a si mesmo). Visitante e
+  // dono recebem false sem nenhuma consulta extra.
+  let isFollowing = false;
+  if (viewerId !== undefined && !isOwner) {
+    const follow = await Follow.findOne({
+      where: { followerId: viewerId, followingId: user.id },
+      attributes: ['id']
+    });
+    isFollowing = follow !== null;
+  }
+
   return {
     ...user.toJSON(),
     // true só se quem pediu está logado E é a dona/o dono do perfil.
-    isOwner: viewerId !== undefined && viewerId === user.id
+    isOwner,
+    isFollowing
   };
 }
 

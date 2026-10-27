@@ -3,11 +3,10 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPublicProfile } from '../../services/authService'
 import { getProfilePictureUrl } from '../../utils/media'
-import { useAuth } from '../../composables/useAuth'
 import EpisodeCard from '../../components/episodes/EpisodeCard.vue'
+import FollowButton from '../../components/follow/FollowButton.vue'
 
 const route = useRoute()
-const { isAuthenticated } = useAuth()
 
 const profile = ref(null)
 const episodes = ref([])
@@ -76,20 +75,33 @@ watch(() => route.params.username, (username) => loadProfile(username), { immedi
           <h1 class="h3 mb-0">{{ profile.fullName || profile.username }}</h1>
           <p class="text-secondary mb-2">@{{ profile.username }}</p>
           <p v-if="profile.bio" class="mb-2">{{ profile.bio }}</p>
+          <!-- Os números viram links para as listas (rotas públicas). O contador
+               de seguidores é o MESMO profile.followersCount que o FollowButton
+               edita por v-model: muda junto com o botão. -->
           <p class="text-secondary small mb-3">
             <strong>{{ profile.episodesCount }}</strong> episódios ·
-            <strong>{{ profile.followersCount }}</strong> seguidores ·
-            <strong>{{ profile.followingCount }}</strong> seguindo
+            <router-link
+              :to="{ name: 'followers', params: { username: profile.username } }"
+              class="profile-stat-link"
+            ><strong>{{ profile.followersCount }}</strong> seguidores</router-link> ·
+            <router-link
+              :to="{ name: 'following-list', params: { username: profile.username } }"
+              class="profile-stat-link"
+            ><strong>{{ profile.followingCount }}</strong> seguindo</router-link>
           </p>
 
-          <!-- Três casos: dono / logado (outra pessoa) / visitante.
-               Esconder o botão não é segurança: a API é quem recusa. -->
+          <!-- Dois casos: dono / qualquer outra pessoa. O visitante também vê o
+               botão: o clique dele leva ao login e volta ao perfil (feito dentro
+               do FollowButton). Esconder o botão não é segurança: a API recusa. -->
           <router-link v-if="isOwner" :to="{ name: 'my-profile' }" class="btn btn-outline-primary">
             <i class="bi bi-pencil-square"></i> Editar Perfil
           </router-link>
-          <button v-else-if="isAuthenticated" type="button" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Seguir
-          </button>
+          <FollowButton
+            v-else
+            :user-id="profile.id"
+            v-model:following="profile.isFollowing"
+            v-model:followers-count="profile.followersCount"
+          />
         </div>
       </section>
 
