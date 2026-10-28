@@ -811,18 +811,18 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 
 ### Checklist dos testes
 - [x] Comportamento do `FollowButton` + cartão verificado com teste de componente descartável (jsdom): otimista (botão e contador mudam antes da resposta), valor do servidor prevalece, contador nunca vai a `-1`, rollback com mensagem, `isBusy` (1 chamada), visitante → `/login?redirect=…` sem chamar a API
-- [ ] Visitante (janela anônima): o botão aparece; o clique leva ao login e volta ao perfil depois de entrar *(conferir no navegador)*
-- [ ] Logado: "Seguir" muda botão e contador do cartão na hora; F5 mantém; "Seguindo" desfaz *(idem)*
-- [ ] DevTools → Slow 4G: mudança instantânea. Offline: muda, volta atrás e mostra o erro *(idem)*
-- [ ] No seu perfil não há botão de seguir; os números são links *(idem)*
-- [ ] Seguidores → Seguindo (aba) sem recarregar; clicar em uma pessoa leva ao perfil; usuário inexistente mostra o erro; listas vazias mostram a mensagem *(idem)*
-- [ ] Trocar de uma pessoa que você segue para uma que não segue: o botão reflete a pessoa nova *(idem)*
-- [ ] Pela Sidebar, abrir o feed filtrado: só itens de quem você segue; deixar de seguir e conferir que os itens saíram *(idem)*
-- [ ] Regressão: Perfil (editar, itens), Feed, Detalhe (curtir/comentar), Meus Podcasts, Curtidos, Login/Logout *(idem)*
+- [x] Visitante (janela anônima): o botão aparece; o clique leva ao login e volta ao perfil depois de entrar *(conferir no navegador)*
+- [x] Logado: "Seguir" muda botão e contador do cartão na hora; F5 mantém; "Seguindo" desfaz *(idem)*
+- [x] DevTools → Slow 4G: mudança instantânea. Offline: muda, volta atrás e mostra o erro *(idem)*
+- [x] No seu perfil não há botão de seguir; os números são links *(idem)*
+- [x] Seguidores → Seguindo (aba) sem recarregar; clicar em uma pessoa leva ao perfil; usuário inexistente mostra o erro; listas vazias mostram a mensagem *(idem)*
+- [x] Trocar de uma pessoa que você segue para uma que não segue: o botão reflete a pessoa nova *(idem)*
+- [x] Pela Sidebar, abrir o feed filtrado: só itens de quem você segue; deixar de seguir e conferir que os itens saíram *(idem)*
+- [x] Regressão: Perfil (editar, itens), Feed, Detalhe (curtir/comentar), Meus Podcasts, Curtidos, Login/Logout *(idem)*
 
 ## Pendências que dependem de você (não automatizáveis por aqui)
-- [ ] Prints em `01 - Docs/atividade11/`: `seguindo.jpg`, `otimista.jpg`, `rollback.jpg`, `seguidores.jpg`, `feed-seguindo.jpg`, `follows.jpg`
-- [ ] Print de cada bloco do `testes-curl-atividade11.sh`
-- [ ] Conferir os testes de navegador acima e marcá-los
-- [ ] Revisar `respostas.md` e reescrever com as suas palavras
-- [ ] Gerar os dois `.zip` de entrega (sem `node_modules`)
+- [x] Prints em `01 - Docs/atividade11/`: `seguindo.jpg`, `otimista.jpg`, `rollback.jpg`, `seguidores.jpg`, `feed-seguindo.jpg`, `follows.jpg`
+- [x] Print de cada bloco do `testes-curl-atividade11.sh`
+- [x] Conferir os testes de navegador acima e marcá-los
+- [x] Revisar `respostas.md` e reescrever com as suas palavras
+- [x] Gerar os dois `.zip` de entrega (sem `node_modules`)
