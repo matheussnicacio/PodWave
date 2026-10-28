@@ -4,7 +4,7 @@
 # Uso (a partir de podwaveapi/):
 #   API=http://localhost:4000/api AUDIO=./audio-teste.mp3 CAPA=./capa-teste.jpg \
 #   DB="mariadb -uroot podwave" bash "../podwavefrontend/01 - Docs/atividade11/testes-curl-atividade11.sh"
-# Cria três contas (A, B e C) com sufixo aleatório, então pode rodar várias vezes.
+# Requer: bash, curl e node (sem Python). Cria três contas (A, B e C) com sufixo aleatório, então pode rodar várias vezes.
 # O bloco 07 precisa de um cliente de banco (variável DB).
 API="${API:-http://localhost:4000/api}"
 AUDIO="${AUDIO:-./audio-teste.mp3}"
@@ -13,7 +13,10 @@ DB="${DB:-mariadb -uroot podwave}"
 S="$(date +%s)$RANDOM"
 PASS="senha123"
 
-j() { python3 -c "import sys,json; d=json.load(sys.stdin); print(eval(sys.argv[1]))" "$1"; }
+# j: lê o JSON da entrada padrão em `d` e imprime o resultado da expressão JS.
+# Usa Node (já instalado, pois a API roda nele) em vez de Python: assim o script
+# funciona no Git Bash do Windows sem nenhuma instalação extra.
+j() { node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); const r=eval(process.argv[1]); console.log(typeof r==='object'?JSON.stringify(r):r)" "$1"; }
 req() { # req <método> <url> [token] [json]
   local m="$1" u="$2" t="$3" b="$4"
   local args=(-s -w '\n[HTTP %{http_code}]\n' -X "$m" "$API$u")
@@ -29,7 +32,7 @@ uid() { curl -s "$API/profile/$1$S" | j "d['data']['id']"; }
 # Mostra só o essencial dos contadores e de isFollowing/isOwner de um perfil.
 prof() { # prof <username> [token]
   local h=(); [ -n "$2" ] && h=(-H "Authorization: Bearer $2")
-  curl -s "${h[@]}" "$API/profile/$1" | j "{k:d['data'][k] for k in ('username','followersCount','followingCount','isFollowing','isOwner')}"
+  curl -s "${h[@]}" "$API/profile/$1" | j "(({username,followersCount,followingCount,isFollowing,isOwner})=>({username,followersCount,followingCount,isFollowing,isOwner}))(d.data)"
 }
 
 echo "== 00. Preparação: contas A, B e C; B publica 1 episódio (A e C não publicam)"
@@ -71,13 +74,13 @@ echo; echo "== 05. Listas públicas: followers de B (A e C; mais recente primeir
 echo "-- followers de B (sem token):"; req GET "/users/$UB/followers"
 echo "-- following de A (sem token):"; req GET "/users/$UA/following"
 echo "-- password em algum item? (esperado: False)"
-curl -s "$API/users/$UB/followers" | python3 -c "import sys; print('password' in sys.stdin.read())"
+curl -s "$API/users/$UB/followers" | node -e "console.log(require('fs').readFileSync(0,'utf8').includes('password'))"
 echo "-- usuário inexistente:"; req GET "/users/99999/followers"; req GET "/users/99999/following"
 echo "-- id inválido:"; req GET "/users/abc/followers"
 
 echo; echo "== 06. Feed filtrado: sem token 401 ; A (segue B) só itens de B ; ?page=2&limit=1 -> [] ; quem não segue ninguém -> []"
 req GET "/following-episodes"
-echo "-- A:"; curl -s "$API/following-episodes" -H "Authorization: Bearer $TA" | j "[(i['id'], i['title'], i['author']['username']) for i in d['data']]"
+echo "-- A:"; curl -s "$API/following-episodes" -H "Authorization: Bearer $TA" | j "d.data.map(i=>[i.id,i.title,i.author.username])"
 echo "-- A, page=2&limit=1:"; req GET "/following-episodes?page=2&limit=1" "$TA"
 echo "-- conta nova que não segue ninguém:"
 reg d; TD=$(login d); req GET "/following-episodes" "$TD"
@@ -98,4 +101,4 @@ $DB -e "SELECT (SELECT COUNT(*) FROM follows WHERE following_id=$UC) linhas_segu
 echo; echo "== 09. Regressão: curtir, comentar e GET /feed continuam funcionando"
 req POST "/episodes/$EP/toggle-like" "$TA"
 req POST "/episodes/$EP/comments" "$TA" '{"content":"regressão ok"}'
-curl -s "$API/feed?page=1&limit=3" -H "Authorization: Bearer $TA" | j "('itens no feed geral:', len(d['data']))"
+curl -s "$API/feed?page=1&limit=3" -H "Authorization: Bearer $TA" | j "'itens no feed geral: '+d.data.length"
