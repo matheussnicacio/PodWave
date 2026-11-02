@@ -1,4 +1,5 @@
 import api from './api'
+import { PAGE_SIZE } from '../config/constants'
 
 // Alterna "o usuário logado segue o usuário `userId`". A API responde
 // { isFollowing, followersCount } em data: isFollowing é o estado NOVO e
@@ -20,6 +21,6 @@ export function getFollowing(userId) {
 
 // Uma página do feed de QUEM EU SIGO. Como no Feed geral, a API devolve um
 // array em data; array vazio = não há mais itens (ou não sigo ninguém).
-export function getFollowingEpisodes(page = 1, limit = 8) {
+export function getFollowingEpisodes(page = 1, limit = PAGE_SIZE) {
   return api.get('/following-episodes', { params: { page, limit } })
 }

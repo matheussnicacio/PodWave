@@ -6,8 +6,8 @@ import { useAuth } from '../../composables/useAuth'
 import BaseInput from '../../components/base/BaseInput.vue'
 import BaseButton from '../../components/base/BaseButton.vue'
 import FormCard from '../../components/base/FormCard.vue'
+import { LIMITS } from '../../config/constants'
 
-const BIO_MAX = 255
 
 const { updateUser } = useAuth()
 
@@ -94,8 +94,8 @@ function validate() {
     errors.fullName = 'O nome completo é obrigatório.'
   }
 
-  if (form.bio.length > BIO_MAX) {
-    errors.bio = `A bio deve ter no máximo ${BIO_MAX} caracteres.`
+  if (form.bio.length > LIMITS.BIO_MAX) {
+    errors.bio = `A bio deve ter no máximo ${LIMITS.BIO_MAX} caracteres.`
   }
 
   return !errors.fullName && !errors.bio
@@ -185,9 +185,9 @@ async function handleSubmit() {
         label="Bio"
         as="textarea"
         :rows="3"
-        :maxlength="BIO_MAX"
+        :maxlength="LIMITS.BIO_MAX"
         :error="errors.bio"
-        :help-text="`${form.bio.length}/${BIO_MAX} caracteres`"
+        :help-text="`${form.bio.length}/${LIMITS.BIO_MAX} caracteres`"
       />
 
       <div v-if="apiErrorMessage" class="alert alert-danger py-2" role="alert">

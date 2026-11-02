@@ -1,0 +1,7 @@
+{} -> {"page":1,"limit":12}
+{"limit":"-3"} -> {"page":1,"limit":12}
+{"limit":"100000"} -> {"page":1,"limit":50}
+{"page":"-2","limit":"2"} -> {"page":1,"limit":2}
+{"limit":"1"} -> {"page":1,"limit":1}
+{"limit":"abc"} -> {"page":1,"limit":12}
+{"page":"2","limit":"1"} -> {"page":2,"limit":1}

@@ -1,53 +1,34 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPublicProfile } from '../../services/authService'
+import { useAsyncData } from '../../composables/useAsyncData'
 import { getProfilePictureUrl } from '../../utils/media'
 import EpisodeCard from '../../components/episodes/EpisodeCard.vue'
 import FollowButton from '../../components/follow/FollowButton.vue'
 
 const route = useRoute()
 
+// Recarrega ao trocar de :username (de um perfil para outro sem recriar a tela).
+const { data, error, isLoading } = useAsyncData(
+  () => getPublicProfile(route.params.username),
+  { watch: () => route.params.username }
+)
+
+// `profile` é um ref PRÓPRIO (copiado de data): o FollowButton edita
+// profile.isFollowing e profile.followersCount por v-model, e o cartão muda
+// junto. Um computed devolveria um objeto novo a cada leitura e a edição se perderia.
 const profile = ref(null)
-const episodes = ref([])
-// isOwner vem da API (true se quem pede é a dona/o dono do perfil). Quem
-// decide é o servidor, comparando o token com o id do perfil — o front só
-// usa o valor para escolher qual botão mostrar.
-const isOwner = ref(false)
-const isLoading = ref(true)
-const errorMessage = ref('')
-
-// Protege contra resposta atrasada: se a pessoa navega de um perfil para
-// outro rápido, só a ÚLTIMA requisição pode escrever no estado.
-let latestRequest = 0
-
-async function loadProfile(username) {
-  const requestId = ++latestRequest
-  isLoading.value = true
-  errorMessage.value = ''
-  profile.value = null
-  episodes.value = []
-  isOwner.value = false
-
-  try {
-    const response = await getPublicProfile(username)
-    if (requestId !== latestRequest) return
-    const { isOwner: owner, episodes: items = [], ...data } = response.data
-    profile.value = data
-    episodes.value = items
-    isOwner.value = owner
-  } catch (err) {
-    if (requestId !== latestRequest) return
-    errorMessage.value = err.message || 'Não foi possível carregar o perfil.'
-  } finally {
-    if (requestId === latestRequest) isLoading.value = false
+watch(data, (value) => {
+  if (!value) {
+    profile.value = null
+    return
   }
-}
-
-// immediate: carrega ao abrir; e recarrega quando só o :username muda (de um
-// perfil para outro o Vue Router REAPROVEITA o componente — sem este watch a
-// tela ficaria presa no perfil anterior).
-watch(() => route.params.username, (username) => loadProfile(username), { immediate: true })
+  const { isOwner, episodes, ...rest } = value
+  profile.value = rest
+})
+const episodes = computed(() => data.value?.episodes ?? [])
+const isOwner = computed(() => data.value?.isOwner ?? false)
 </script>
 
 <template>
@@ -58,8 +39,8 @@ watch(() => route.params.username, (username) => loadProfile(username), { immedi
       </div>
     </div>
 
-    <div v-else-if="errorMessage" class="alert alert-danger" role="alert">
-      {{ errorMessage }}
+    <div v-else-if="error" class="alert alert-danger" role="alert">
+      {{ error }}
       <router-link to="/feed" class="alert-link ms-2">Voltar ao feed</router-link>
     </div>
 

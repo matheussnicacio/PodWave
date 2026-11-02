@@ -1,7 +1,5 @@
 <script setup>
-import { ref, onBeforeUnmount } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuth } from '../../composables/useAuth'
+import { useAuthenticatedAction } from '../../composables/useAuthenticatedAction'
 import { toggleFollow } from '../../services/followService'
 
 // Botão de seguir com ATUALIZAÇÃO OTIMISTA (mesmos três passos do LikeButton:
@@ -27,70 +25,41 @@ const props = defineProps({
 const following = defineModel('following', { type: Boolean, default: false })
 const followersCount = defineModel('followersCount', { type: Number, default: 0 })
 
-const route = useRoute()
-const router = useRouter()
-const { isAuthenticated } = useAuth()
+// "Cerca" (visitante -> login) e isBusy (uma requisição por vez) vêm do
+// composable; o toast de erro vem do interceptor. Aqui o catch só desfaz o visual.
+const { run, isBusy } = useAuthenticatedAction()
 
-// isBusy: enquanto há uma requisição em andamento, novos cliques são ignorados
-// (senão o rollback de uma poderia sobrescrever o estado da outra).
-const isBusy = ref(false)
-const errorMessage = ref('')
-let errorTimer = null
+function onClick() {
+  return run(async () => {
+    // Pessoa a quem este clique se refere: se a rota mudar para outro perfil
+    // enquanto a requisição voa, a resposta NÃO pode escrever no perfil novo.
+    const targetId = props.userId
 
-function showError(message) {
-  errorMessage.value = message
-  clearTimeout(errorTimer)
-  errorTimer = setTimeout(() => { errorMessage.value = '' }, 4000)
-}
+    // Passo 1: guardar o estado anterior.
+    const previous = { following: following.value, count: followersCount.value }
 
-onBeforeUnmount(() => clearTimeout(errorTimer))
+    // ARMADILHA do defineModel: atribuir `following.value = x` NÃO atualiza a
+    // leitura na mesma hora (só depois que o pai processa o update:). Por isso
+    // o novo estado é calculado numa variável LOCAL e é ela que decide o contador.
+    const nowFollowing = !previous.following
 
-async function onClick() {
-  // Visitante: seguir exige login. Leva ao login guardando a rota atual em
-  // ?redirect=, para voltar ao perfil depois de entrar.
-  if (!isAuthenticated.value) {
-    router.push({ name: 'login', query: { redirect: route.fullPath } })
-    return
-  }
-  if (isBusy.value) return
+    // Passo 2: aplicar já na tela (botão e contador do cartão, juntos).
+    following.value = nowFollowing
+    followersCount.value = Math.max(previous.count + (nowFollowing ? 1 : -1), 0)
 
-  isBusy.value = true
-  errorMessage.value = ''
-
-  // Pessoa a quem este clique se refere: se a rota mudar para outro perfil
-  // enquanto a requisição voa, a resposta NÃO pode escrever no perfil novo.
-  const targetId = props.userId
-
-  // Passo 1: guardar o estado anterior.
-  const previous = { following: following.value, count: followersCount.value }
-
-  // ARMADILHA do defineModel: atribuir `following.value = x` NÃO atualiza a
-  // leitura na mesma hora. O model local só reflete o novo valor depois que o
-  // pai processa o evento update: e re-renderiza (próximo tick); até lá,
-  // `following.value` ainda devolve o valor ANTIGO. Por isso o novo estado é
-  // calculado numa variável LOCAL (nowFollowing) e é ela — nunca
-  // `following.value` "logo depois de atribuir" — que decide o contador.
-  const nowFollowing = !previous.following
-
-  // Passo 2: aplicar já na tela (botão e contador do cartão, juntos).
-  following.value = nowFollowing
-  followersCount.value = Math.max(previous.count + (nowFollowing ? 1 : -1), 0)
-
-  try {
-    const response = await toggleFollow(targetId)
-    if (props.userId !== targetId) return
-    // Passo 3 (sucesso): o servidor é a fonte da verdade.
-    following.value = response.data.isFollowing
-    followersCount.value = response.data.followersCount
-  } catch (err) {
-    if (props.userId !== targetId) return
-    // Passo 3 (falha): ROLLBACK para o estado guardado + aviso.
-    following.value = previous.following
-    followersCount.value = previous.count
-    showError(err.message || 'Não foi possível atualizar. Tente novamente.')
-  } finally {
-    isBusy.value = false
-  }
+    try {
+      const response = await toggleFollow(targetId)
+      if (props.userId !== targetId) return
+      // Passo 3 (sucesso): o servidor é a fonte da verdade.
+      following.value = response.data.isFollowing
+      followersCount.value = response.data.followersCount
+    } catch {
+      if (props.userId !== targetId) return
+      // Passo 3 (falha): ROLLBACK. O toast de erro vem do interceptor.
+      following.value = previous.following
+      followersCount.value = previous.count
+    }
+  })
 }
 </script>
 
@@ -107,6 +76,5 @@ async function onClick() {
       <i class="bi" :class="following ? 'bi-person-check' : 'bi-person-plus'"></i>
       {{ following ? 'Seguindo' : 'Seguir' }}
     </button>
-    <p v-if="errorMessage" class="follow-button-error" role="alert">{{ errorMessage }}</p>
   </div>
 </template>

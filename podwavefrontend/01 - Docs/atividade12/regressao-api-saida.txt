@@ -1,0 +1,97 @@
+== 00. Preparação: contas A, B, C
+ids: A=6 B=7 C=8
+
+== 01. Transação: contador do autor ANTES, publicar 14 episódios, contador DEPOIS (B)
+episodesCount antes: 0
+primeiro: 201 id=21 (esperado 201)
+episodesCount depois (esperado 14): 14
+
+== 02. A segue B (para o feed filtrado ter 14 itens)
+{"success":true,"message":"Você começou a seguir.","data":{"isFollowing":true,"followersCount":1}}
+[HTTP 201]
+
+== 03. Paginação /feed: itens devolvidos por consulta
+GET /feed? -> 12 itens [HTTP 200]
+GET /feed?limit=-3 -> 12 itens [HTTP 200]
+GET /feed?limit=0 -> 12 itens [HTTP 200]
+GET /feed?limit=abc -> 12 itens [HTTP 200]
+GET /feed?limit=100000 -> 33 itens [HTTP 200]
+GET /feed?page=-2&limit=2 -> 2 itens [HTTP 200]
+GET /feed?page=abc -> 12 itens [HTTP 200]
+GET /feed?limit=1 -> 1 itens [HTTP 200]
+GET /feed?limit=50 -> 33 itens [HTTP 200]
+GET /feed?limit=51 -> 33 itens [HTTP 200]
+-- page=2&limit=1 deve ser o SEGUNDO mais novo (1 item), não a lista padrão:
+["Episodio 13 do B"]
+-- page=1&limit=3 / page=2&limit=3 (sem repetir item):
+[34,33,32]
+[31,30,29]
+-- sem token (401):
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+
+== 04. Paginação /following-episodes (A segue B, 14 itens)
+GET /following-episodes? -> 12 itens
+GET /following-episodes?limit=-3 -> 12 itens
+GET /following-episodes?limit=100000 -> 14 itens
+GET /following-episodes?page=-2&limit=2 -> 2 itens
+GET /following-episodes?page=2&limit=1 -> 1 itens
+conta C (não segue ninguém) -> []
+-- sem token (401):
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+
+== 05. Ids inválidos (os três curl do Bloco 2.5): mesmo status?
+-- GET /episodes/abc:
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+-- POST /episodes/abc/toggle-like:
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+-- GET /episodes/abc/comments:
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+-- POST /users/abc/toggle-follow (módulo follow):
+{"success":false,"message":"Identificador de usuário inválido.","errors":[]}
+[HTTP 400]
+-- GET /profile/usuario-que-nao-existe:
+{"success":false,"message":"Usuário não encontrado.","errors":[]}
+[HTTP 404]
+
+== 06. Regressão — perfil com isFollowing (visitante / A vendo B / B vendo B)
+{"username":"b17936568939362","followersCount":1,"episodesCount":14,"isFollowing":false,"isOwner":false}
+{"username":"b17936568939362","followersCount":1,"episodesCount":14,"isFollowing":true,"isOwner":false}
+{"username":"b17936568939362","followersCount":1,"episodesCount":14,"isFollowing":false,"isOwner":true}
+-- profile/me sem token (401) e com token:
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+a17936568939362
+
+== 07. Regressão — seguir, seguidores e seguindo
+{"success":true,"message":"Você começou a seguir.","data":{"isFollowing":true,"followersCount":2}}
+[HTTP 201]
+followers de B (A e C): ["c17936568939362","a17936568939362"]
+following de A: ["b17936568939362"]
+password vazou? (esperado false): false
+
+== 08. Regressão — curtir, curtidas, comentar, comentários
+{"success":true,"message":"Episódio curtido.","data":{"liked":true,"likesCount":1}}
+[HTTP 201]
+curtidos de A: [34]
+{"success":true,"message":"Comentário publicado.","data":{"id":2,"content":"regressão ok","userId":6,"episodeId":34,"createdAt":"2026-11-02T22:01:36.000Z","updatedAt":"2026-11-02T22:01:36.000Z","author":{"id":6,"username":"a17936568939362","fullName":"Usuario a","profilePicture":"default-profile.png"}}}
+[HTTP 201]
+comentários do episódio: ["regressão ok"]
+detalhe (likesCount/commentsCount/isLiked): {"likesCount":1,"commentsCount":1,"isLiked":true,"isOwner":false}
+
+== 09. Regressão — meus itens, editar e excluir (contador volta a 13)
+meus episódios de B: 14
+{"success":false,"message":"O título é obrigatório.","errors":[{"type":"field","value":"","msg":"O título é obrigatório.","path":"title","location":"body"}]}
+[HTTP 400]
+{"success":true,"message":"Episódio excluído com sucesso.","data":null}
+[HTTP 200]
+episodesCount de B depois de excluir (esperado 13): 13
+-- excluir de novo (404) e excluir de outro usuário (403 se existir):
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+{"success":false,"message":"Você não tem permissão para alterar este episódio.","errors":[]}
+[HTTP 403]

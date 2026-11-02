@@ -8,5 +8,6 @@ export function getComments(episodeId) {
 // Exige login. A API devolve o comentário criado JÁ com o autor, para a tela
 // poder mostrá-lo no topo sem recarregar a lista.
 export function createComment(episodeId, content) {
-  return api.post(`/episodes/${episodeId}/comments`, { content })
+  // silent: o erro do comentário aparece no formulário de comentar.
+  return api.post(`/episodes/${episodeId}/comments`, { content }, { silent: true })
 }

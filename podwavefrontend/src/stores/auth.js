@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { login as loginRequest, logout as logoutRequest } from '../services/authService'
-import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../utils/storageKeys'
+import { STORAGE_KEYS } from '../config/constants'
 
 function loadStoredUser() {
-  const raw = localStorage.getItem(USER_STORAGE_KEY)
+  const raw = localStorage.getItem(STORAGE_KEYS.USER)
   if (!raw) return null
   try {
     return JSON.parse(raw)
@@ -15,7 +15,7 @@ function loadStoredUser() {
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: loadStoredUser(),
-    token: localStorage.getItem(TOKEN_STORAGE_KEY) || null,
+    token: localStorage.getItem(STORAGE_KEYS.TOKEN) || null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -25,15 +25,15 @@ export const useAuthStore = defineStore('auth', {
     setSession(user, token) {
       this.user = user
       this.token = token
-      localStorage.setItem(TOKEN_STORAGE_KEY, token)
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+      localStorage.setItem(STORAGE_KEYS.TOKEN, token)
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
     },
 
     clearSession() {
       this.user = null
       this.token = null
-      localStorage.removeItem(TOKEN_STORAGE_KEY)
-      localStorage.removeItem(USER_STORAGE_KEY)
+      localStorage.removeItem(STORAGE_KEYS.TOKEN)
+      localStorage.removeItem(STORAGE_KEYS.USER)
     },
 
     // Atualiza só os dados do usuário (mantém o token intacto). Usado depois
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
     // precisar de F5 ou de um novo login.
     updateUser(user) {
       this.user = user
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
     },
 
     async login(credentials) {

@@ -1,15 +1,16 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
 import { createComment, getComments } from '../../services/commentService'
 import { getProfilePictureUrl } from '../../utils/media'
 import { formatDateTime } from '../../utils/format'
+import { useAsyncData } from '../../composables/useAsyncData'
+import { LIMITS } from '../../config/constants'
 import BaseButton from '../base/BaseButton.vue'
 
-// Mesmo limite da API (VALIDATION.COMMENT_MAX). A validação do front é só
-// conforto: poupa uma requisição inútil. Quem realmente garante é a API.
-const COMMENT_MAX = 500
+// LIMITS.COMMENT_MAX é o mesmo limite da API (VALIDATION.COMMENT_MAX). A
+// validação do front é só conforto: poupa uma requisição inútil.
 
 const props = defineProps({
   episodeId: { type: [Number, String], required: true },
@@ -21,38 +22,17 @@ const emit = defineEmits(['created'])
 const route = useRoute()
 const { isAuthenticated } = useAuth()
 
-const comments = ref([])
-const isLoading = ref(true)
-const loadError = ref('')
+// Lista de comentários = leitura -> useAsyncData (recarrega se o episódio mudar).
+const { data: comments, error: loadError, isLoading } = useAsyncData(
+  () => getComments(props.episodeId),
+  { watch: () => props.episodeId, initialData: [] }
+)
 
 const content = ref('')
 const isSubmitting = ref(false)
 const formError = ref('')
 
-const remaining = computed(() => COMMENT_MAX - content.value.length)
-
-// Descarta respostas atrasadas se o :id mudar enquanto a lista carrega.
-let latestRequest = 0
-
-async function loadComments(episodeId) {
-  const requestId = ++latestRequest
-  isLoading.value = true
-  loadError.value = ''
-  comments.value = []
-
-  try {
-    const response = await getComments(episodeId)
-    if (requestId !== latestRequest) return
-    comments.value = response.data
-  } catch (err) {
-    if (requestId !== latestRequest) return
-    loadError.value = err.message || 'Não foi possível carregar os comentários.'
-  } finally {
-    if (requestId === latestRequest) isLoading.value = false
-  }
-}
-
-watch(() => props.episodeId, loadComments, { immediate: true })
+const remaining = computed(() => LIMITS.COMMENT_MAX - content.value.length)
 
 async function submit() {
   if (isSubmitting.value) return
@@ -64,8 +44,8 @@ async function submit() {
     formError.value = 'Escreva um comentário antes de enviar.'
     return
   }
-  if (text.length > COMMENT_MAX) {
-    formError.value = `O comentário deve ter no máximo ${COMMENT_MAX} caracteres.`
+  if (text.length > LIMITS.COMMENT_MAX) {
+    formError.value = `O comentário deve ter no máximo ${LIMITS.COMMENT_MAX} caracteres.`
     return
   }
 

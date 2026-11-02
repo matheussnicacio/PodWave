@@ -5,6 +5,12 @@ const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 
+function httpError(message, status) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
 const DEFAULT_PROFILE_PICTURE = 'default-profile.png';
 const PROFILE_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'profiles');
 
@@ -13,7 +19,7 @@ async function registerUser(username, email, password, fullName) {
   const usernameExists = await User.findOne({ where: { username } });
 
   if (emailExists || usernameExists) {
-    throw new Error('Este e-mail ou usuário já está cadastrado.');
+    throw httpError('Este e-mail ou usuário já está cadastrado.', 409);
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -79,13 +85,13 @@ async function loginUser(email, password) {
 
   if (!user) {
     // Mensagem genérica de propósito: não revela se o e-mail existe ou não.
-    throw new Error('E-mail ou senha inválidos.');
+    throw httpError('E-mail ou senha inválidos.', 401);
   }
 
   const passwordMatches = await bcrypt.compare(password, user.password);
 
   if (!passwordMatches) {
-    throw new Error('E-mail ou senha inválidos.');
+    throw httpError('E-mail ou senha inválidos.', 401);
   }
 
   return {

@@ -1,5 +1,6 @@
 const followService = require('./followService');
 const episodeService = require('../episode/episodeService');
+const { parsePagination } = require('../../utils/pagination');
 const { success } = require('../../middlewares/apiResponse');
 
 // Converte req.params.userId (SEMPRE string) em número e recusa o que não for
@@ -57,7 +58,7 @@ exports.getFollowing = async (req, res) => {
 
 // GET /api/following-episodes?page=&limit= — feed de quem EU sigo.
 exports.getFollowingEpisodes = async (req, res) => {
-  const { page, limit } = episodeService.parsePagination(req.query);
+  const { page, limit } = parsePagination(req.query);
   const items = await episodeService.getFollowingEpisodes(req.user.id, page, limit);
   return success(res, items);
 };

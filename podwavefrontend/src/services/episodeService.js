@@ -1,4 +1,5 @@
 import api from './api'
+import { PAGE_SIZE } from '../config/constants'
 
 // onUploadProgress, não hard-coded aqui dentro: quem decide o QUE fazer com
 // o progresso (atualizar uma barra, um texto, nada) é a tela que chama este
@@ -9,6 +10,7 @@ export function createEpisode(formData, onUploadProgress) {
   return api.post('/episodes', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress,
+    silent: true, // erro de publicação é do formulário
   })
 }
 
@@ -21,7 +23,7 @@ export function getEpisodeById(id) {
 
 // Uma página do Feed geral. A API devolve um array em data; array vazio = não
 // há mais itens.
-export function getFeed(page = 1, limit = 8) {
+export function getFeed(page = 1, limit = PAGE_SIZE) {
   return api.get('/feed', { params: { page, limit } })
 }
 
@@ -41,9 +43,11 @@ export function getEpisodeForEdit(id) {
 export function updateEpisode(id, formData) {
   return api.put(`/episodes/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    silent: true, // erro de edição é do formulário
   })
 }
 
+// Exclusão é AÇÃO (não é formulário): se falhar, o interceptor mostra o toast.
 export function deleteEpisode(id) {
   return api.delete(`/episodes/${id}`)
 }

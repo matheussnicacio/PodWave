@@ -232,7 +232,7 @@ async function deleteEpisode(episodeId, userId) {
  * banco só entende "pule X registros". Página 1 pula 0, página 2 pula
  * `limit`, página 3 pula 2*limit, e assim por diante.
  */
-async function getFeedEpisodes({ page, limit }) {
+async function getFeedEpisodes({ page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT } = {}) {
   const offset = (page - 1) * limit;
 
   return Episode.findAll({
@@ -261,7 +261,7 @@ async function getFeedEpisodes({ page, limit }) {
  * "nenhum item" — então nem precisamos consultar os episódios. O front
  * entende [] como "não há mais itens" e mostra o estado vazio.
  */
-async function getFollowingEpisodes(userId, page, limit) {
+async function getFollowingEpisodes(userId, page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT) {
   const follows = await Follow.findAll({
     where: { followerId: userId },
     attributes: ['followingId']
@@ -281,22 +281,6 @@ async function getFollowingEpisodes(userId, page, limit) {
     limit,
     offset
   });
-}
-
-/**
- * Normaliza ?page= e ?limit=: valores ausentes, não numéricos, zero ou
- * negativos caem no padrão; limit é limitado a PAGINATION.LIMIT_MAX.
- */
-function parsePagination(query) {
-  const page = parseInt(query.page, 10);
-  const limit = parseInt(query.limit, 10);
-
-  return {
-    page: Number.isInteger(page) && page >= 1 ? page : PAGINATION.DEFAULT_PAGE,
-    limit: Number.isInteger(limit) && limit >= 1
-      ? Math.min(limit, PAGINATION.LIMIT_MAX)
-      : PAGINATION.DEFAULT_LIMIT
-  };
 }
 
 /**
@@ -337,6 +321,5 @@ module.exports = {
   getEpisodeForEdit,
   updateEpisode,
   deleteEpisode,
-  parsePagination,
   getEpisodeAudioFile
 };
