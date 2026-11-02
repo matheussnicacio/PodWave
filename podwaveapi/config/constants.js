@@ -26,11 +26,14 @@ module.exports = {
     // tamanho de forma independente.
     COMMENT_MAX: 500
   },
-  // Paginação do Feed (GET /api/feed?page=&limit=). LIMIT_MAX evita que um
-  // cliente peça ?limit=100000 e force o banco a devolver a tabela inteira.
+  // Paginação dos feeds (GET /api/feed e GET /api/following-episodes).
+  // Fonte ÚNICA do "tamanho de página": nenhum Service ou Controller escreve
+  // 10, 12 ou 50 na mão — todos leem daqui (via utils/pagination.js).
+  // MAX_LIMIT é o teto: evita que um cliente peça ?limit=100000 e force o
+  // banco a devolver a tabela inteira.
   PAGINATION: {
     DEFAULT_PAGE: 1,
-    DEFAULT_LIMIT: 10,
-    LIMIT_MAX: 50
+    DEFAULT_LIMIT: 12,
+    MAX_LIMIT: 50
   }
 };

@@ -6,9 +6,8 @@ import { getEpisodeCoverUrl } from '../../utils/media'
 import BaseInput from '../../components/base/BaseInput.vue'
 import BaseButton from '../../components/base/BaseButton.vue'
 import FormCard from '../../components/base/FormCard.vue'
+import { LIMITS } from '../../config/constants'
 
-const TITLE_MAX = 100
-const DESCRIPTION_MAX = 500
 
 const route = useRoute()
 
@@ -74,12 +73,12 @@ function validate() {
 
   if (!form.title.trim()) {
     errors.title = 'O título é obrigatório.'
-  } else if (form.title.trim().length > TITLE_MAX) {
-    errors.title = `O título deve ter no máximo ${TITLE_MAX} caracteres.`
+  } else if (form.title.trim().length > LIMITS.TITLE_MAX) {
+    errors.title = `O título deve ter no máximo ${LIMITS.TITLE_MAX} caracteres.`
   }
 
-  if (form.description.length > DESCRIPTION_MAX) {
-    errors.description = `A descrição deve ter no máximo ${DESCRIPTION_MAX} caracteres.`
+  if (form.description.length > LIMITS.DESCRIPTION_MAX) {
+    errors.description = `A descrição deve ter no máximo ${LIMITS.DESCRIPTION_MAX} caracteres.`
   }
 
   return !errors.title && !errors.description
@@ -131,7 +130,7 @@ onBeforeUnmount(clearPreview)
 
   <FormCard v-else title="Editar Episódio" icon="bi-pencil-square" width="md">
     <form novalidate @submit.prevent="handleSubmit">
-      <BaseInput id="title" v-model="form.title" label="Título" :error="errors.title" :maxlength="TITLE_MAX" required />
+      <BaseInput id="title" v-model="form.title" label="Título" :error="errors.title" :maxlength="LIMITS.TITLE_MAX" required />
 
       <BaseInput
         id="description"
@@ -139,9 +138,9 @@ onBeforeUnmount(clearPreview)
         label="Descrição"
         as="textarea"
         :rows="3"
-        :maxlength="DESCRIPTION_MAX"
+        :maxlength="LIMITS.DESCRIPTION_MAX"
         :error="errors.description"
-        :help-text="`${form.description.length}/${DESCRIPTION_MAX} caracteres`"
+        :help-text="`${form.description.length}/${LIMITS.DESCRIPTION_MAX} caracteres`"
       />
 
       <div class="mb-3">

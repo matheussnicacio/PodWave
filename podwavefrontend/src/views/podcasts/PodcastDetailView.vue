@@ -1,7 +1,8 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getEpisodeById } from '../../services/episodeService'
+import { useAsyncData } from '../../composables/useAsyncData'
 import { getEpisodeAudioUrl, getEpisodeCoverUrl, getProfilePictureUrl } from '../../utils/media'
 import { formatCount } from '../../utils/format'
 import LikeButton from '../../components/episodes/LikeButton.vue'
@@ -9,43 +10,28 @@ import CommentSection from '../../components/episodes/CommentSection.vue'
 
 const route = useRoute()
 
-const episode = ref(null)
-// isOwner vem da API (true se o usuário logado é o autor). Só decide se o
-// botão "Editar" aparece — esconder o botão NÃO é segurança: quem recusa uma
-// edição de não-dono é a API (403), mesmo que alguém digite a URL na mão.
-const isOwner = ref(false)
-// isLiked vem da API (false para visitante). O LikeButton cuida do estado da
-// curtida depois disso; o Detalhe só guarda o contador de comentários, que
-// sobe quando a CommentSection avisa que um comentário foi criado.
-const isLiked = ref(false)
+// useAsyncData: carrega ao abrir e recarrega se o :id mudar (watch). A função
+// () => getEpisodeById(...) é passada, NÃO a chamada: quem decide quando
+// chamar é o composable. lastCallId descarta respostas atrasadas de um id antigo.
+const { data, error, isLoading } = useAsyncData(
+  () => getEpisodeById(route.params.id),
+  { watch: () => route.params.id }
+)
+
+// isOwner e isLiked vêm da API junto do episódio. isOwner só decide se o botão
+// "Editar" aparece — esconder o botão NÃO é segurança: a API recusa (403).
+const episode = computed(() => {
+  if (!data.value) return null
+  const { isOwner, isLiked, ...rest } = data.value
+  return rest
+})
+const isOwner = computed(() => data.value?.isOwner ?? false)
+const isLiked = computed(() => data.value?.isLiked ?? false)
+
+// O contador de comentários sobe quando a CommentSection avisa que um
+// comentário foi criado; por isso é um ref próprio, iniciado pelo episódio.
 const commentsCount = ref(0)
-const isLoading = ref(true)
-const errorMessage = ref('')
-
-async function loadEpisode(id) {
-  isLoading.value = true
-  errorMessage.value = ''
-  episode.value = null
-
-  try {
-    const response = await getEpisodeById(id)
-    const { isOwner: owner, isLiked: liked, ...data } = response.data
-    episode.value = data
-    isOwner.value = owner
-    isLiked.value = liked
-    commentsCount.value = data.commentsCount ?? 0
-  } catch (err) {
-    // id inexistente (404), rede fora do ar etc.: mostra a mensagem da API
-    // em vez de deixar a tela quebrada/em branco.
-    errorMessage.value = err.message || 'Não foi possível carregar o episódio.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// immediate: carrega ao abrir a tela; e recarrega se o :id da URL mudar sem
-// a tela ser recriada (navegar de um episódio para outro).
-watch(() => route.params.id, (id) => loadEpisode(id), { immediate: true })
+watch(episode, (value) => { commentsCount.value = value?.commentsCount ?? 0 })
 </script>
 
 <template>
@@ -56,8 +42,8 @@ watch(() => route.params.id, (id) => loadEpisode(id), { immediate: true })
       </div>
     </div>
 
-    <div v-else-if="errorMessage" class="alert alert-danger" role="alert">
-      {{ errorMessage }}
+    <div v-else-if="error" class="alert alert-danger" role="alert">
+      {{ error }}
       <router-link to="/feed" class="alert-link ms-2">Voltar ao feed</router-link>
     </div>
 

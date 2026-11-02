@@ -1,59 +1,33 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPublicProfile } from '../../services/authService'
 import { getFollowers, getFollowing } from '../../services/followService'
+import { useAsyncData } from '../../composables/useAsyncData'
 import { getProfilePictureUrl } from '../../utils/media'
 
-// UMA tela, DUAS rotas (/profile/:username/followers e /following). Quem diz
-// qual lista mostrar é a definição da rota, que entrega `kind` por props
-// (router/index.js). A tela não olha a URL para decidir: só lê `kind`.
 const props = defineProps({
   kind: { type: String, required: true, validator: (v) => ['followers', 'following'].includes(v) },
 })
 
 const route = useRoute()
 
-const profile = ref(null)
-const people = ref([])
-const isLoading = ref(true)
-const errorMessage = ref('')
-
-// Protege contra resposta atrasada (trocar de aba/perfil rápido): só a ÚLTIMA
-// carga pode escrever no estado.
-let latestRequest = 0
-
-// DUAS chamadas em SEQUÊNCIA, e não em paralelo: a rota usa o USERNAME, mas a
-// API de listas usa o ID numérico. Só dá para pedir a lista depois de o
-// perfil ter devolvido o id.
-async function loadList() {
-  const requestId = ++latestRequest
-  isLoading.value = true
-  errorMessage.value = ''
-  profile.value = null
-  people.value = []
-
-  try {
+// Duas chamadas em sequência (perfil -> lista) dentro de UM fetcher. O fetcher
+// já devolve o objeto final, então transform é a identidade (não é res.data).
+// watch: recarrega ao trocar a aba (kind) ou a pessoa (username).
+const { data, error, isLoading } = useAsyncData(
+  async () => {
     const profileResponse = await getPublicProfile(route.params.username)
-    if (requestId !== latestRequest) return
     const { episodes, isOwner, isFollowing, ...person } = profileResponse.data
-    profile.value = person
-
     const fetchList = props.kind === 'followers' ? getFollowers : getFollowing
     const listResponse = await fetchList(person.id)
-    if (requestId !== latestRequest) return
-    people.value = listResponse.data
-  } catch (err) {
-    if (requestId !== latestRequest) return
-    errorMessage.value = err.message || 'Não foi possível carregar a lista.'
-  } finally {
-    if (requestId === latestRequest) isLoading.value = false
-  }
-}
+    return { profile: person, people: listResponse.data }
+  },
+  { transform: (result) => result, watch: () => [props.kind, route.params.username] }
+)
 
-// Recarrega ao abrir E quando muda a aba (kind) ou a pessoa (username): o
-// Vue Router reaproveita o componente entre rotas do mesmo componente.
-watch(() => [props.kind, route.params.username], loadList, { immediate: true })
+const profile = computed(() => data.value?.profile ?? null)
+const people = computed(() => data.value?.people ?? [])
 
 function displayName(person) {
   return person.fullName || person.username
@@ -98,8 +72,8 @@ function displayName(person) {
       </div>
     </div>
 
-    <div v-else-if="errorMessage" class="alert alert-danger" role="alert">
-      {{ errorMessage }}
+    <div v-else-if="error" class="alert alert-danger" role="alert">
+      {{ error }}
       <router-link to="/feed" class="alert-link ms-2">Voltar ao feed</router-link>
     </div>
 

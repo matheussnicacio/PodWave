@@ -1,39 +1,23 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { getMyEpisodes, deleteEpisode } from '../../services/episodeService'
+import { useAsyncData } from '../../composables/useAsyncData'
+import { useToast } from '../../composables/useToast'
 import EpisodeCard from '../../components/episodes/EpisodeCard.vue'
 import BaseModal from '../../components/base/BaseModal.vue'
 import BaseButton from '../../components/base/BaseButton.vue'
 
-const episodes = ref([])
-const isLoading = ref(true)
-const errorMessage = ref('')
+const toast = useToast()
 
-// Um ÚNICO modal para a tela toda, fora da grade/dos cards: o card que a
-// pessoa clicou fica guardado em episodeToDelete (null = modal fechado).
-// Se cada card tivesse seu próprio modal, ele herdaria o transform do :hover
-// do card e o position: fixed deixaria de ser relativo à janela.
+const { data: episodes, error, isLoading } = useAsyncData(() => getMyEpisodes(), { initialData: [] })
+
+// Exclusão = AÇÃO (não é leitura nem formulário): se falhar, quem avisa é o
+// toast do interceptor (aparece na frente do modal); o modal continua aberto
+// para tentar de novo. Por isso não há mais mensagem de erro dentro do modal.
 const episodeToDelete = ref(null)
 const isDeleting = ref(false)
-const deleteError = ref('')
-
-async function loadEpisodes() {
-  isLoading.value = true
-  errorMessage.value = ''
-  try {
-    const response = await getMyEpisodes()
-    episodes.value = response.data
-  } catch (err) {
-    errorMessage.value = err.message || 'Não foi possível carregar seus episódios.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(loadEpisodes)
 
 function askDelete(episode) {
-  deleteError.value = ''
   episodeToDelete.value = episode
 }
 
@@ -45,16 +29,15 @@ function cancelDelete() {
 async function confirmDelete() {
   if (!episodeToDelete.value || isDeleting.value) return
   isDeleting.value = true
-  deleteError.value = ''
 
   try {
     const { id } = episodeToDelete.value
     await deleteEpisode(id)
-    // Remoção LOCAL: o item some da lista sem recarregar e sem nova ida à API.
     episodes.value = episodes.value.filter((episode) => episode.id !== id)
     episodeToDelete.value = null
-  } catch (err) {
-    deleteError.value = err.message || 'Não foi possível excluir o episódio.'
+    toast.success('Episódio excluído com sucesso.')
+  } catch {
+    // O toast de erro já foi mostrado pelo interceptor.
   } finally {
     isDeleting.value = false
   }
@@ -76,7 +59,7 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <div v-else-if="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+    <div v-else-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
 
     <div v-else-if="episodes.length === 0" class="text-secondary">
       Você ainda não publicou nenhum episódio.
@@ -106,7 +89,6 @@ async function confirmDelete() {
       <p class="text-secondary small mb-0">
         O áudio e a capa serão apagados e essa ação não pode ser desfeita.
       </p>
-      <div v-if="deleteError" class="alert alert-danger py-2 mt-3 mb-0" role="alert">{{ deleteError }}</div>
 
       <template #footer>
         <BaseButton variant="outline-secondary" :block="false" :disabled="isDeleting" @click="cancelDelete">

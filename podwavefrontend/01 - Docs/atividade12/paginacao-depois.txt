@@ -1,0 +1,15 @@
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4000/api/feed?limit=-3'
+{"success":true,"message":null,"data":[{"id":6,"title":"Ep 3","description":"d","audio":"1793656603929-935490046.mp3","cover":"1793656603929-870730609.jpg","views":0,"likesCount":0,"commentsCount":0,"userId":2,"createdAt":"2026-11-02T21:56:43.000Z","updatedAt":"2026-11-02T21:56:43.000Z","author":{"i
+[HTTP 200]
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4000/api/feed?limit=100000'
+{"success":true,"message":null,"data":[{"id":6,"title":"Ep 3","description":"d","audio":"1793656603929-935490046.mp3","cover":"1793656603929-870730609.jpg","views":0,"likesCount":0,"commentsCount":0,"userId":2,"createdAt":"2026-11-02T21:56:43.000Z","updatedAt":"2026-11-02T21:56:43.000Z","author":{"i
+[HTTP 200]
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4000/api/feed?page=-2&limit=2'
+{"success":true,"message":null,"data":[{"id":6,"title":"Ep 3","description":"d","audio":"1793656603929-935490046.mp3","cover":"1793656603929-870730609.jpg","views":0,"likesCount":0,"commentsCount":0,"userId":2,"createdAt":"2026-11-02T21:56:43.000Z","updatedAt":"2026-11-02T21:56:43.000Z","author":{"i
+[HTTP 200]
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4000/api/feed?limit=abc'
+{"success":true,"message":null,"data":[{"id":6,"title":"Ep 3","description":"d","audio":"1793656603929-935490046.mp3","cover":"1793656603929-870730609.jpg","views":0,"likesCount":0,"commentsCount":0,"userId":2,"createdAt":"2026-11-02T21:56:43.000Z","updatedAt":"2026-11-02T21:56:43.000Z","author":{"i
+[HTTP 200]
+--- GET /following-episodes?limit=-3 (seguindo ninguém)
+{"success":true,"message":null,"data":[]}
+[HTTP 200]

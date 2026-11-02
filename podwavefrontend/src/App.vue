@@ -2,6 +2,7 @@
 import TheNavbar from './components/layout/TheNavbar.vue'
 import TheSidebar from './components/layout/TheSidebar.vue'
 import TheFooter from './components/layout/TheFooter.vue'
+import ToastContainer from './components/base/ToastContainer.vue'
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import TheFooter from './components/layout/TheFooter.vue'
       </main>
     </div>
     <TheFooter />
+    <ToastContainer />
   </div>
 </template>
 

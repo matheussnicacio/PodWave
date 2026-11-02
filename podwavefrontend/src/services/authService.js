@@ -1,15 +1,19 @@
 import api from './api'
 
 export function register(payload) {
-  return api.post('/register', payload)
+  // silent: o erro de cadastro aparece no FORMULÁRIO, não em toast.
+  // post(url, DADOS, CONFIG): a config é o 3º argumento.
+  return api.post('/register', payload, { silent: true })
 }
 
 export function login(payload) {
-  return api.post('/login', payload)
+  return api.post('/login', payload, { silent: true })
 }
 
 export function logout() {
-  return api.post('/logout')
+  // silent: o logout é best-effort (a store encerra a sessão local mesmo se
+  // falhar); sem `null` como 2º argumento, a config viraria o corpo.
+  return api.post('/logout', null, { silent: true })
 }
 
 export function getMyProfile() {
@@ -36,6 +40,7 @@ export function getMyProfile() {
 export function updateProfile(formData) {
   return api.put('/profile/me', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    silent: true, // erro de edição de perfil é do formulário
   })
 }
 

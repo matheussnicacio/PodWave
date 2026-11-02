@@ -4,9 +4,8 @@ import { createEpisode } from '../services/episodeService'
 import BaseInput from '../components/base/BaseInput.vue'
 import BaseButton from '../components/base/BaseButton.vue'
 import FormCard from '../components/base/FormCard.vue'
+import { LIMITS } from '../config/constants'
 
-const TITLE_MAX = 100
-const DESCRIPTION_MAX = 500
 
 const form = reactive({
   title: '',
@@ -76,12 +75,12 @@ function validate() {
 
   if (!form.title.trim()) {
     errors.title = 'O título é obrigatório.'
-  } else if (form.title.trim().length > TITLE_MAX) {
-    errors.title = `O título deve ter no máximo ${TITLE_MAX} caracteres.`
+  } else if (form.title.trim().length > LIMITS.TITLE_MAX) {
+    errors.title = `O título deve ter no máximo ${LIMITS.TITLE_MAX} caracteres.`
   }
 
-  if (form.description.length > DESCRIPTION_MAX) {
-    errors.description = `A descrição deve ter no máximo ${DESCRIPTION_MAX} caracteres.`
+  if (form.description.length > LIMITS.DESCRIPTION_MAX) {
+    errors.description = `A descrição deve ter no máximo ${LIMITS.DESCRIPTION_MAX} caracteres.`
   }
 
   if (!selectedAudio.value) {
@@ -150,7 +149,7 @@ async function handleSubmit() {
         v-model="form.title"
         label="Título"
         :error="errors.title"
-        :maxlength="TITLE_MAX"
+        :maxlength="LIMITS.TITLE_MAX"
         required
       />
 
@@ -160,9 +159,9 @@ async function handleSubmit() {
         label="Descrição"
         as="textarea"
         :rows="3"
-        :maxlength="DESCRIPTION_MAX"
+        :maxlength="LIMITS.DESCRIPTION_MAX"
         :error="errors.description"
-        :help-text="`${form.description.length}/${DESCRIPTION_MAX} caracteres`"
+        :help-text="`${form.description.length}/${LIMITS.DESCRIPTION_MAX} caracteres`"
       />
 
       <div class="mb-3">

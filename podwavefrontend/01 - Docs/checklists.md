@@ -826,3 +826,39 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 - [x] Conferir os testes de navegador acima e marcá-los
 - [x] Revisar `respostas.md` e reescrever com as suas palavras
 - [x] Gerar os dois `.zip` de entrega (sem `node_modules`)
+
+---
+
+# Atividade 12 — Checkpoint 2 (Leitura crítica, constantes, `useAsyncData`, toasts e regressão)
+
+## PARTE A — Backend
+- [x] `checkpoint-02.md` criado, com as seções 2.1–2.6 e as três perguntas extras
+- [x] Problema da paginação reproduzido antes da correção (`atividade12/paginacao-antes.txt`)
+- [x] `PAGINATION` (`DEFAULT_PAGE`, `DEFAULT_LIMIT: 12`, `MAX_LIMIT: 50`) e `utils/pagination.js` criados e usados nos dois controllers e nos dois services
+- [x] Busca: "tamanho de página" não aparece mais solto em `modules/`
+- [x] Testes da paginação com o resultado esperado (`paginacao-depois.txt`, `regressao-api-saida.txt` blocos 03–04)
+- [x] `createEpisode` em transação com `{ transaction: t }` nas duas escritas (já estava assim); criação testada: `201` e `episodesCount` 0 → 14
+- [x] Regressão da API sem surpresas (`testes-curl-atividade12.sh`, saída em `regressao-api-saida.txt`)
+- [ ] Print `.jpg` de cada `curl` *(feito por você: rode o script e tire os prints)*
+
+## PARTE B — Frontend
+- [x] `src/config/constants.js` criado (`STORAGE_KEYS`, `LIMITS`, `PAGE_SIZE`, `TOAST_DURATION`, `MESSAGES`), limites iguais aos da API
+- [x] `api.js`, `stores/auth.js` e os services de feed usam as constantes (`utils/storageKeys.js` removido)
+- [x] `useToast` (singleton) + `ToastContainer` montado uma vez em `App.vue` (`z-index` 2000 > modal 1050)
+- [x] Interceptor com `notifyIfNeeded`: ação falha → toast; leitura falha → tela; 401 → login
+- [x] `silent: true` somente nos formulários (login, cadastro, edição de perfil, publicar e editar episódio, comentar) e no logout
+- [x] `useAsyncData`, `usePaginatedList`, `useAuthenticatedAction` criados
+- [x] Telas de leitura refatoradas: Detalhe, Perfil público, Curtidas, Meus Podcasts, Listas de seguidores/seguindo, Comentários, Feed, Feed filtrado (sem `apiErrorMessage`/`errorMessage` de leitura sobrando)
+- [x] Decisão registrada: **`MyProfileView` e `EditPodcastView` ficam de fora** — só preenchem um formulário a partir de uma leitura; o erro de carga e o erro de envio vivem no mesmo formulário, e envolver tudo em `useAsyncData` obrigaria a copiar `data` para o `reactive` do form, trocando um esqueleto simples por um `watch` extra
+- [x] `LikeButton` e `FollowButton` usam `useAuthenticatedAction`, sem `errorMessage` local; o `catch` só desfaz o visual
+- [x] Nenhum limite solto nos formulários (busca: só sobram em `constants.js`)
+- [x] `npm run build` sem erros; lógica dos composables testada (corrida, paginação, singleton do toast)
+- [ ] Cada tela testada individualmente no navegador *(feito por você)*
+- [ ] Prints: `toast-erro.jpg`, `toast-sucesso.jpg`, `toast-modal.jpg`, `uma-requisicao.jpg`, `formulario-sem-toast.jpg`, `paginacao-antes.jpg`, `paginacao-depois.jpg` *(feito por você)*
+- [ ] Teste de regressão completo do Bloco 11 do roteiro de Frontend, com conta nova *(feito por você)*
+- [ ] Passo 20 (corrida), opcional, para o ponto extra *(feito por você)*
+
+## Reflexão e entrega
+- [x] Tabela da Seção 13 no `checkpoint-02.md` (pendência com aula nomeada)
+- [x] `respostas.md` com as sete respostas *(rascunho: reescreva com as suas palavras)*
+- [ ] Gerar os dois `.zip` de entrega, sem `node_modules` *(feito por você)*

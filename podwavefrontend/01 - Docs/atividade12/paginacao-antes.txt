@@ -1,0 +1,15 @@
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4001/api/feed?limit=-3'
+{"success":false,"message":"You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '-3' at line 1","errors":[]}
+[HTTP 500]
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4001/api/feed?limit=100000'
+{"success":true,"message":null,"data":[{"id":3,"title":"Ep 3","description":"d","audio":"1793636713840-935637943.mp3","cover":"1793636713841-88125902.jpg","views":0,"likesCount":0,"commentsCount":0,"userId":1,"createdAt":"2026-11-02T16:25:13.000Z","updatedAt":"2026-11-02T16:25:13.000Z","author":{"id
+[HTTP 200]
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4001/api/feed?page=-2&limit=2'
+{"success":false,"message":"You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '-6, 2' at line 1","errors":[]}
+[HTTP 500]
+--- curl -H 'Authorization: Bearer <token>' 'http://localhost:4001/api/feed?limit=abc'
+{"success":true,"message":null,"data":[{"id":3,"title":"Ep 3","description":"d","audio":"1793636713840-935637943.mp3","cover":"1793636713841-88125902.jpg","views":0,"likesCount":0,"commentsCount":0,"userId":1,"createdAt":"2026-11-02T16:25:13.000Z","updatedAt":"2026-11-02T16:25:13.000Z","author":{"id
+[HTTP 200]
+--- GET /following-episodes?limit=-3 (seguindo ninguém)
+{"success":true,"message":null,"data":[]}
+[HTTP 200]

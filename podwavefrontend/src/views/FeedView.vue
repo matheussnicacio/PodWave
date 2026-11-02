@@ -1,53 +1,23 @@
 <script setup>
-import { onMounted, ref } from 'vue'
 import { getFeed } from '../services/episodeService'
+import { usePaginatedList } from '../composables/usePaginatedList'
 import EpisodeCard from '../components/episodes/EpisodeCard.vue'
 import BaseButton from '../components/base/BaseButton.vue'
 
-// Quantos itens cada página pede. A API devolve um array; se vier menos do
-// que PAGE_SIZE, sabemos que acabaram os itens e escondemos o botão.
-const PAGE_SIZE = 8
-
-const episodes = ref([])
-const page = ref(0) // última página já carregada (0 = nenhuma)
-const hasMore = ref(true)
-const isLoading = ref(false)
-const errorMessage = ref('')
-
-async function loadMore() {
-  if (isLoading.value) return
-  isLoading.value = true
-  errorMessage.value = ''
-
-  try {
-    const nextPage = page.value + 1
-    const response = await getFeed(nextPage, PAGE_SIZE)
-    const items = response.data
-
-    // "Carregar mais" ACRESCENTA a página nova à lista existente (push), em
-    // vez de substituí-la: o usuário não perde o que já viu.
-    episodes.value.push(...items)
-    page.value = nextPage
-    hasMore.value = items.length === PAGE_SIZE
-  } catch (err) {
-    errorMessage.value = err.message || 'Não foi possível carregar o feed.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(loadMore)
+// usePaginatedList cuida de items/página/hasMore/isLoading/error (e de
+// carregar a primeira página). Erro de leitura fica aqui na tela.
+const { items: episodes, hasMore, isLoading, error, isEmpty, loadMore } = usePaginatedList(getFeed)
 </script>
 
 <template>
   <div class="p-4">
     <h1 class="h3 mb-4">Feed de Podcasts</h1>
 
-    <div v-if="errorMessage" class="alert alert-danger" role="alert">
-      {{ errorMessage }}
+    <div v-if="error" class="alert alert-danger" role="alert">
+      {{ error }}
     </div>
 
-    <p v-if="!isLoading && !errorMessage && episodes.length === 0" class="text-secondary">
+    <p v-if="isEmpty" class="text-secondary">
       Nenhum episódio publicado ainda.
     </p>
 

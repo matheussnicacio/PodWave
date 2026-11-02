@@ -1,5 +1,6 @@
 const userService = require('./userService');
 const episodeService = require('../episode/episodeService');
+const { parsePagination } = require('../../utils/pagination');
 const { success } = require('../../middlewares/apiResponse');
 const { generateToken } = require('../../config/jwt');
 
@@ -61,7 +62,7 @@ exports.updateProfile = async (req, res) => {
 // Devolve só a página pedida: um array de episódios recentes com o autor
 // populado. Array vazio ([]) significa "não há mais itens nessa página".
 exports.getFeed = async (req, res) => {
-  const { page, limit } = episodeService.parsePagination(req.query);
+  const { page, limit } = parsePagination(req.query);
   const items = await episodeService.getFeedEpisodes({ page, limit });
   return success(res, items);
 };

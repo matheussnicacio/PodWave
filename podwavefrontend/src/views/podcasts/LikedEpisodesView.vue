@@ -1,28 +1,11 @@
 <script setup>
-import { onMounted, ref } from 'vue'
 import { getLikedEpisodes } from '../../services/likeService'
+import { useAsyncData } from '../../composables/useAsyncData'
 import EpisodeCard from '../../components/episodes/EpisodeCard.vue'
 
-const episodes = ref([])
-const isLoading = ref(true)
-const errorMessage = ref('')
-
-// Recarrega a cada visita à tela: descurtir no Detalhe e voltar aqui mostra a
-// lista já sem o item (a view é recriada ao navegar).
-async function loadEpisodes() {
-  isLoading.value = true
-  errorMessage.value = ''
-  try {
-    const response = await getLikedEpisodes()
-    episodes.value = response.data
-  } catch (err) {
-    errorMessage.value = err.message || 'Não foi possível carregar os episódios curtidos.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(loadEpisodes)
+const { data: episodes, error, isLoading, refresh } = useAsyncData(() => getLikedEpisodes(), {
+  initialData: [],
+})
 </script>
 
 <template>
@@ -35,9 +18,9 @@ onMounted(loadEpisodes)
       </div>
     </div>
 
-    <div v-else-if="errorMessage" class="alert alert-danger" role="alert">
-      {{ errorMessage }}
-      <button type="button" class="btn btn-link alert-link p-0 ms-2" @click="loadEpisodes">Tentar de novo</button>
+    <div v-else-if="error" class="alert alert-danger" role="alert">
+      {{ error }}
+      <button type="button" class="btn btn-link alert-link p-0 ms-2" @click="refresh">Tentar de novo</button>
     </div>
 
     <div v-else-if="episodes.length === 0" class="text-secondary">
