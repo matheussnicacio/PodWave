@@ -18,7 +18,11 @@ Arquivos desta pasta:
 - `teste-controle-contador.txt` — teste de controle da Etapa 5 (antes/depois).
 - `respostas.md` — as oito respostas (rascunho: reescreva com as suas palavras).
 
-Prints pendentes (feitos por você no navegador/cliente de banco): `colecao-privada.jpg`,
-`salvar-modal.jpg`, `otimista-modal.jpg`, `rollback-modal.jpg`, `detalhe-colecao.jpg`,
-`colecao-privada-visitante.jpg`, `debounce.jpg`, `busca.jpg`, `navbar-busca.jpg`,
-`contador-controle.jpg`, `contador-certo.jpg`, `colecoes-banco.jpg` e um `.jpg` de cada curl.
+Prints:
+- Tela: `colecao-privada.jpg`, `salvar-modal.jpg`, `otimista-modal.jpg` (Slow 4G), `rollback-modal.jpg` (Offline),
+  `detalhe-colecao.jpg`, `colecao-privada-visitante.jpg`, `debounce.jpg`, `busca.jpg`, `navbar-busca.jpg`.
+  Capturados com navegador automatizado (Chromium); onde o enunciado pede a aba Network, há abaixo da tela
+  um painel com as requisições à API registradas.
+- Controle: `contador-controle.jpg` (bloco comentado: contador 1 com 0 linhas) e `contador-certo.jpg` (bloco restaurado).
+- Banco: `colecoes-banco.jpg` (tabelas, índices, `ON DELETE CASCADE` e a recusa da linha repetida).
+- Curls da Etapa 6: `curl-01-criar.jpg` … `curl-11-regressao.jpg` (o 10 é o teste no cliente de banco).

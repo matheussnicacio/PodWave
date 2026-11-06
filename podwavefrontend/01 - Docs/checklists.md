@@ -885,10 +885,10 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 - [x] Controller `async`/`await`; rota com `asyncHandler`
 ### Etapa 5 — Exclusão do episódio
 - [x] Exclusão limpa a junção e desconta o contador de cada playlist afetada, na mesma transação
-- [x] Teste de controle feito e descrito (`atividade13/teste-controle-contador.txt`, `respostas.md` pergunta 3)
+- [x] Teste de controle feito e descrito (`atividade13/teste-controle-contador.txt`, `contador-controle.jpg`, `contador-certo.jpg`, `respostas.md` pergunta 3)
 ### Etapa 6 — Testes
-- [x] Os onze testes executados com sucesso (`atividade13/testes-api-saida.txt`); recusa da linha repetida conferida no banco
-- [ ] Print `.jpg` de cada curl *(feito por você)*
+- [x] Os onze testes executados com sucesso (`atividade13/testes-api-saida.txt`); recusa da linha repetida conferida no banco (`colecoes-banco.jpg`)
+- [x] Print `.jpg` de cada curl (`atividade13/curl-01-criar.jpg` … `curl-11-regressao.jpg`)
 
 ## PARTE B — Frontend
 ### Checagem de alcançabilidade (Seção 9)
@@ -914,17 +914,18 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 - [x] `CreatePlaylistModal`, `MyPlaylistsView` e `PlaylistDetailView`, com 403/404 na própria tela
 - [x] Cartão clicável (`stretched-link`) com "Excluir" por cima (`position-relative` + `z-index`)
 ### Etapa 4
-- [x] `AddToPlaylistModal`: caixas marcadas conforme o servidor, `:checked` + `@change`, otimista com rollback, cerca por linha (`Set` reativo)
+- [x] `AddToPlaylistModal`: caixas marcadas conforme o servidor, `:checked` + `@change`, otimista com rollback, cerca por linha (`Set` reativo) — conferido no navegador com Slow 4G e Offline (`otimista-modal.jpg`, `rollback-modal.jpg`)
 - [x] Botão "Salvar" no detalhe, com a cerca do visitante e `v-if` para o modal
 ### Etapa 5
 - [x] `useDebouncedValue` (digitar "podcast" sem pausa → 1 emissão, conferido em teste)
 - [x] `SearchView` com termo na URL (`router.replace`), Navbar com `<form role="search">` e item "Minhas Playlists"
-- [ ] Network: uma requisição por palavra; F5/link/Voltar *(conferir no navegador)*
+- [x] Network: digitar "podcast" sem pausa gerou uma só requisição de busca (`debounce.jpg`)
+- [ ] F5, link com `?q=` e Voltar *(conferir no navegador)*
 ### Etapa 6
 - [ ] Teste prático completo de clique em clique *(feito por você)*
 - [x] `npm run build` sem erros
 
 ## Entrega
 - [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
-- [ ] Prints da pasta `atividade13/` *(lista no LEIA-ME)*
+- [x] Prints da pasta `atividade13/` *(os de aba Network foram capturados por navegador automatizado, com painel de rede; refazer no Chrome se o professor exigir a janela do DevTools)*
 - [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*

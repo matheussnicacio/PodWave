@@ -1,20 +1,64 @@
 Teste de controle — Etapa 5 (exclusão do episódio x contador da playlist)
-Playlist usada: "Publica da A" (id 2). Um episódio novo foi publicado, salvo nela e excluído.
 
-### COM O BLOCO NOVO COMENTADO (só o ON DELETE CASCADE trabalhando)
-antes:  Publica da A episodesCount=2
-exclusão: 200
-depois: Publica da A episodesCount=2      <- o contador NÃO desceu
-linhas reais na junção: 1                 <- o CASCADE apagou a linha
+### COM O BLOCO NOVO COMENTADO
+$ sed -n 229,242p modules/episode/episodeService.js   # bloco novo COMENTADO
+    // const playlistLinks = await PlaylistEpisode.findAll({
+    // where: { episodeId: episode.id },
+    // attributes: ['playlistId'],
+    // transaction: t
+    // });
+    // const affectedPlaylistIds = playlistLinks.map((link) => link.playlistId);
+    // if (affectedPlaylistIds.length > 0) {
+    // await Playlist.decrement('episodesCount', {
+    // by: 1,
+    // where: { id: affectedPlaylistIds },
+    // transaction: t
+    // });
+    // await PlaylistEpisode.destroy({ where: { episodeId: episode.id }, transaction: t });
+    // }
+$ curl -s -X POST http://localhost:4000/api/playlists/7/episodes -H "Authorization: Bearer $T" -H "Content-Type: application/json" -d '{"episodeId":5}'
+{"success":true,"message":"Episódio adicionado à playlist.","data":{"added":true,"episodesCount":1}}
+$ curl -s http://localhost:4000/api/my-playlists -H "Authorization: Bearer $T"   # antes
+[{"id":7,"title":"Playlist do Controle","episodesCount":1}]
+$ curl -s -X DELETE http://localhost:4000/api/episodes/5 -H "Authorization: Bearer $T" -w ' [HTTP %{http_code}]'
+{"success":true,"message":"Episódio excluído com sucesso.","data":null} [HTTP 200]
+$ curl -s http://localhost:4000/api/my-playlists -H "Authorization: Bearer $T"   # depois
+[{"id":7,"title":"Playlist do Controle","episodesCount":1}]
+$ mysql ... -e "SELECT p.id, p.title, p.episodes_count, (SELECT COUNT(*) FROM playlist_episodes pe WHERE pe.playlist_id = p.id) AS linhas_reais FROM playlists p WHERE p.id = 7;"
++----+----------------------+----------------+--------------+
+| id | title                | episodes_count | linhas_reais |
++----+----------------------+----------------+--------------+
+|  7 | Playlist do Controle |              1 |            0 |
++----+----------------------+----------------+--------------+
 
 ### COM O BLOCO RESTAURADO
-antes:  Publica da A episodesCount=3
-exclusão: 200
-depois: Publica da A episodesCount=2      <- desceu 1, junto com a linha
-linhas reais na junção: 1
-
-Observação: a diferença de 1 que ficou (contador 2, linha 1) é o "estrago" do
-teste comentado — uma vez errado, o contador desnormalizado não se conserta
-sozinho. Para acertar no seu banco depois de tirar o print:
-  UPDATE playlists p SET episodes_count =
-    (SELECT COUNT(*) FROM playlist_episodes pe WHERE pe.playlist_id = p.id);
+$ # bloco restaurado; contador acertado com: UPDATE playlists p SET episodes_count = (SELECT COUNT(*) FROM playlist_episodes pe WHERE pe.playlist_id = p.id);
+$ sed -n 229,242p modules/episode/episodeService.js
+    const playlistLinks = await PlaylistEpisode.findAll({
+      where: { episodeId: episode.id },
+      attributes: ['playlistId'],
+      transaction: t
+    });
+    const affectedPlaylistIds = playlistLinks.map((link) => link.playlistId);
+    if (affectedPlaylistIds.length > 0) {
+      await Playlist.decrement('episodesCount', {
+        by: 1,
+        where: { id: affectedPlaylistIds },
+        transaction: t
+      });
+      await PlaylistEpisode.destroy({ where: { episodeId: episode.id }, transaction: t });
+    }
+$ curl -s -X POST http://localhost:4000/api/playlists/7/episodes -H "Authorization: Bearer $T" -H "Content-Type: application/json" -d '{"episodeId":6}'
+{"success":true,"message":"Episódio adicionado à playlist.","data":{"added":true,"episodesCount":1}}
+$ curl -s http://localhost:4000/api/my-playlists -H "Authorization: Bearer $T"   # antes
+[{"id":7,"title":"Playlist do Controle","episodesCount":1}]
+$ curl -s -X DELETE http://localhost:4000/api/episodes/6 -H "Authorization: Bearer $T" -w ' [HTTP %{http_code}]'
+{"success":true,"message":"Episódio excluído com sucesso.","data":null} [HTTP 200]
+$ curl -s http://localhost:4000/api/my-playlists -H "Authorization: Bearer $T"   # depois
+[{"id":7,"title":"Playlist do Controle","episodesCount":0}]
+$ mysql ... -e "SELECT p.id, p.title, p.episodes_count, (SELECT COUNT(*) FROM playlist_episodes pe WHERE pe.playlist_id = p.id) AS linhas_reais FROM playlists p WHERE p.id = 7;"
++----+----------------------+----------------+--------------+
+| id | title                | episodes_count | linhas_reais |
++----+----------------------+----------------+--------------+
+|  7 | Playlist do Controle |              0 |            0 |
++----+----------------------+----------------+--------------+
