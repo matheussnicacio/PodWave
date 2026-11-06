@@ -1,0 +1,20 @@
+Teste de controle — Etapa 5 (exclusão do episódio x contador da playlist)
+Playlist usada: "Publica da A" (id 2). Um episódio novo foi publicado, salvo nela e excluído.
+
+### COM O BLOCO NOVO COMENTADO (só o ON DELETE CASCADE trabalhando)
+antes:  Publica da A episodesCount=2
+exclusão: 200
+depois: Publica da A episodesCount=2      <- o contador NÃO desceu
+linhas reais na junção: 1                 <- o CASCADE apagou a linha
+
+### COM O BLOCO RESTAURADO
+antes:  Publica da A episodesCount=3
+exclusão: 200
+depois: Publica da A episodesCount=2      <- desceu 1, junto com a linha
+linhas reais na junção: 1
+
+Observação: a diferença de 1 que ficou (contador 2, linha 1) é o "estrago" do
+teste comentado — uma vez errado, o contador desnormalizado não se conserta
+sozinho. Para acertar no seu banco depois de tirar o print:
+  UPDATE playlists p SET episodes_count =
+    (SELECT COUNT(*) FROM playlist_episodes pe WHERE pe.playlist_id = p.id);

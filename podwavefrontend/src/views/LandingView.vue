@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getApiStatus } from '../services/systemService'
-import { search } from '../services/searchService'
 
 const apiStatus = ref('verificando...')
 
@@ -13,14 +12,6 @@ onMounted(async () => {
     apiStatus.value = 'offline'
     console.error('Erro ao consultar a API:', error.message)
   }
-
-  search('a')
-    .then((response) => {
-      console.log('Busca OK:', response.data)
-    })
-    .catch((error) => {
-      console.error('Erro na busca:', error.message)
-    })
 })
 </script>
 

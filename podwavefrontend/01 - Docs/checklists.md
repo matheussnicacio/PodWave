@@ -862,3 +862,69 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 - [x] Tabela da Seção 13 no `checkpoint-02.md` (pendência com aula nomeada)
 - [x] `respostas.md` com as sete respostas *(rascunho: reescreva com as suas palavras)*
 - [ ] Gerar os dois `.zip` de entrega, sem `node_modules` *(feito por você)*
+
+---
+
+# Atividade 13 — Playlists (muitos-para-muitos), "Salvar" e Busca com Debounce
+
+Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesCount**; status com **hasEpisode**.
+
+## PARTE A — Backend
+### Etapa 1 — Constantes, parseId e followController
+- [x] `PLAYLIST_TITLE_MIN/MAX`, `PLAYLIST_DESCRIPTION_MAX` e bloco `SEARCH` em `config/constants.js`
+- [x] `utils/parseId.js` criado e usado pelo `followController` (4 ocorrências; `parseUserId` apagada; `/users/abc/followers` → 400 com a mesma mensagem)
+### Etapa 2 — Models e associações
+- [x] `Playlist` e `PlaylistEpisode`; seis associações em `config/associations.js`
+- [x] Tabelas, índices (`idx_unique_playlist_episode`, `idx_playlist_episode_episode`, `idx_playlist_user`) e FKs com `ON DELETE CASCADE` conferidos (`SHOW CREATE TABLE`)
+### Etapa 3 — Módulo da playlist
+- [x] Validator, service, controller e rotas; registrados no `app.js` antes do 404/errorHandler
+- [x] Duas escritas (linha + contador) numa transação, nas três operações; increment/decrement só quando mudou
+- [x] 403 para privada de outra pessoa; `isOwner` correto para dona, outra pessoa e visitante (`currentUserId !== null`)
+### Etapa 4 — Busca
+- [x] `escapeLike`, `Promise.all`, entrada tratada (`typeof`, `trim`, `slice`, `MIN_LENGTH`)
+- [x] Controller `async`/`await`; rota com `asyncHandler`
+### Etapa 5 — Exclusão do episódio
+- [x] Exclusão limpa a junção e desconta o contador de cada playlist afetada, na mesma transação
+- [x] Teste de controle feito e descrito (`atividade13/teste-controle-contador.txt`, `respostas.md` pergunta 3)
+### Etapa 6 — Testes
+- [x] Os onze testes executados com sucesso (`atividade13/testes-api-saida.txt`); recusa da linha repetida conferida no banco
+- [ ] Print `.jpg` de cada curl *(feito por você)*
+
+## PARTE B — Frontend
+### Checagem de alcançabilidade (Seção 9)
+| Peça | Caminho de clique |
+|---|---|
+| Minhas Playlists | menu do avatar → "Minhas Playlists" (novo) e Sidebar → "Minhas Playlists" (novo) |
+| Criar / excluir playlist | botão "Nova playlist" (modal) / "Excluir" no cartão (confirmação) |
+| Detalhe da playlist | clique no cartão (link esticado) |
+| Salvar um episódio | botão "Salvar" no detalhe do episódio (visitante → login → volta) |
+| Remover da playlist | botão em cada card no detalhe da playlist (só a dona) |
+| Busca | barra da Navbar (Enter) e Sidebar → "Explorar" (novo, visível também para visitantes) |
+
+- [x] Router: `/my-playlists` (`requiresAuth`), `/playlists/:id` (público, sem `requiresAuth`), `/search` com `name: 'search'` (o mesmo do `router.push`)
+- [x] Sidebar só aponta para paths existentes
+- [x] **Decisão de escopo (lacuna conhecida):** a playlist pública de outra pessoa só é alcançável por link — nenhuma tela lista as playlists públicas de alguém
+### Etapa 1
+- [x] `LIMITS.PLAYLIST_*` e `SEARCH` em `constants.js`; `services/playlistService.js` com as sete funções; `search('a')` removido da Landing
+### Etapa 2
+- [x] `utils/optimistic.js` (`runOptimistic`)
+- [x] `LikeButton` e `FollowButton` refatorados sem mudar o comportamento (lógica conferida em teste: sucesso → confirma; falha → desfaz)
+- [ ] Os dois botões testados no navegador (otimista, Offline, visitante) *(feito por você)*
+### Etapa 3
+- [x] `CreatePlaylistModal`, `MyPlaylistsView` e `PlaylistDetailView`, com 403/404 na própria tela
+- [x] Cartão clicável (`stretched-link`) com "Excluir" por cima (`position-relative` + `z-index`)
+### Etapa 4
+- [x] `AddToPlaylistModal`: caixas marcadas conforme o servidor, `:checked` + `@change`, otimista com rollback, cerca por linha (`Set` reativo)
+- [x] Botão "Salvar" no detalhe, com a cerca do visitante e `v-if` para o modal
+### Etapa 5
+- [x] `useDebouncedValue` (digitar "podcast" sem pausa → 1 emissão, conferido em teste)
+- [x] `SearchView` com termo na URL (`router.replace`), Navbar com `<form role="search">` e item "Minhas Playlists"
+- [ ] Network: uma requisição por palavra; F5/link/Voltar *(conferir no navegador)*
+### Etapa 6
+- [ ] Teste prático completo de clique em clique *(feito por você)*
+- [x] `npm run build` sem erros
+
+## Entrega
+- [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
+- [ ] Prints da pasta `atividade13/` *(lista no LEIA-ME)*
+- [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*

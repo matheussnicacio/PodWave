@@ -7,6 +7,8 @@ import { getEpisodeAudioUrl, getEpisodeCoverUrl, getProfilePictureUrl } from '..
 import { formatCount } from '../../utils/format'
 import LikeButton from '../../components/episodes/LikeButton.vue'
 import CommentSection from '../../components/episodes/CommentSection.vue'
+import AddToPlaylistModal from '../../components/playlists/AddToPlaylistModal.vue'
+import { useAuthenticatedAction } from '../../composables/useAuthenticatedAction'
 
 const route = useRoute()
 
@@ -32,6 +34,17 @@ const isLiked = computed(() => data.value?.isLiked ?? false)
 // comentário foi criado; por isso é um ref próprio, iniciado pelo episódio.
 const commentsCount = ref(0)
 watch(episode, (value) => { commentsCount.value = value?.commentsCount ?? 0 })
+
+// Botão "Salvar" (Aula 13): aparece para TODOS. A "cerca" do
+// useAuthenticatedAction leva o visitante ao login (com ?redirect= para voltar
+// a este episódio). Logado, só abre o modal — o modal é montado com v-if, então
+// a cada abertura ele busca o status de novo (caixas marcadas conforme o servidor).
+const { run: runAuthenticated } = useAuthenticatedAction()
+const isSaving = ref(false)
+
+function openSaveModal() {
+  runAuthenticated(() => { isSaving.value = true })
+}
 </script>
 
 <template>
@@ -77,12 +90,18 @@ watch(episode, (value) => { commentsCount.value = value?.commentsCount ?? 0 })
           <span class="ms-3"><i class="bi bi-chat"></i> {{ formatCount(commentsCount) }} comentários</span>
         </p>
 
-        <LikeButton
-          class="mb-3"
-          :episode-id="episode.id"
-          :initial-liked="isLiked"
-          :initial-count="episode.likesCount ?? 0"
-        />
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+          <LikeButton
+            :episode-id="episode.id"
+            :initial-liked="isLiked"
+            :initial-count="episode.likesCount ?? 0"
+          />
+          <button type="button" class="btn btn-outline-primary btn-sm" @click="openSaveModal">
+            <i class="bi bi-bookmark-plus"></i> Salvar
+          </button>
+        </div>
+
+        <AddToPlaylistModal v-if="isSaving" :episode-id="episode.id" @close="isSaving = false" />
 
         <p v-if="episode.description">{{ episode.description }}</p>
 

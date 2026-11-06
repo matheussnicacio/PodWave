@@ -3,6 +3,8 @@ const Episode = require('../modules/episode/episodeModel');
 const Like = require('../modules/like/likeModel');
 const Comment = require('../modules/comment/commentModel');
 const Follow = require('../modules/follow/followModel');
+const Playlist = require('../modules/playlist/playlistModel');
+const PlaylistEpisode = require('../modules/playlist/playlistEpisodeModel');
 
 // Por que declarar a associação explicitamente para o Sequelize:
 // a FK userId já existe como coluna comum no episodeModel.js, mas, sem as
@@ -54,4 +56,24 @@ Comment.belongsTo(Episode, { foreignKey: 'episodeId', as: 'episode' });
 Follow.belongsTo(User, { as: 'Follower', foreignKey: 'followerId', onDelete: 'CASCADE' });
 Follow.belongsTo(User, { as: 'Following', foreignKey: 'followingId', onDelete: 'CASCADE' });
 
-module.exports = { User, Episode, Like, Comment, Follow };
+// Aula 13 — playlists. A relação Playlist <-> Episode é muitos-para-muitos,
+// modelada EXPLICITAMENTE pela tabela de junção PlaylistEpisode (em vez de um
+// belongsToMany "mágico"): a junção é um model de verdade, com seus índices,
+// e o service escreve nela diretamente (findOrCreate/destroy) junto do
+// contador, na mesma transação.
+//
+// Seis associações: os dois lados de cada par (hasMany + belongsTo).
+//  - Playlist <-> PlaylistEpisode: os itens de uma playlist;
+//  - Episode  <-> PlaylistEpisode: em quais playlists um episódio está;
+//  - User     <-> Playlist:        a dona da playlist (as: 'owner').
+// onDelete: 'CASCADE' cria as FKs com ON DELETE CASCADE no banco: apagar a
+// playlist ou o episódio apaga as linhas da junção. ATENÇÃO: o CASCADE NÃO
+// mexe no playlists.episodes_count — isso é responsabilidade do código.
+Playlist.hasMany(PlaylistEpisode, { foreignKey: 'playlistId', as: 'items', onDelete: 'CASCADE' });
+PlaylistEpisode.belongsTo(Playlist, { foreignKey: 'playlistId', as: 'playlist', onDelete: 'CASCADE' });
+Episode.hasMany(PlaylistEpisode, { foreignKey: 'episodeId', as: 'playlistItems', onDelete: 'CASCADE' });
+PlaylistEpisode.belongsTo(Episode, { foreignKey: 'episodeId', as: 'episode', onDelete: 'CASCADE' });
+User.hasMany(Playlist, { foreignKey: 'userId', as: 'playlists', onDelete: 'CASCADE' });
+Playlist.belongsTo(User, { foreignKey: 'userId', as: 'owner', onDelete: 'CASCADE' });
+
+module.exports = { User, Episode, Like, Comment, Follow, Playlist, PlaylistEpisode };
