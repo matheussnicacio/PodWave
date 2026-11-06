@@ -2,6 +2,8 @@ const sequelize = require('../../config/database');
 const Comment = require('./commentModel');
 const Episode = require('../episode/episodeModel');
 const User = require('../user/userModel');
+const { createNotification } = require('../notification/notificationService');
+const { NOTIFICATION } = require('../../config/constants');
 
 const AUTHOR_INCLUDE = {
   model: User,
@@ -22,7 +24,9 @@ function assertValidId(episodeId) {
 }
 
 /**
- * Cria um comentário e sobe o contador do episódio, em UMA transação.
+ * Cria um comentário, sobe o contador do episódio e avisa o dono do episódio,
+ * em UMA transação (três escritas). Só CRIA o aviso: a API não tem rota para
+ * excluir comentários, então não existe um "desfazer" que precise apagá-lo.
  * Todo comando recebe { transaction: t } (ver comentário em likeService).
  *
  * Ordem dos parâmetros: (userId, episodeId, content) — a mesma do controller.
@@ -36,13 +40,19 @@ async function createComment(userId, episodeId, content) {
   assertValidId(episodeId);
 
   return sequelize.transaction(async (t) => {
-    const episode = await Episode.findByPk(episodeId, { attributes: ['id'], transaction: t });
+    const episode = await Episode.findByPk(episodeId, { attributes: ['id', 'userId'], transaction: t });
     if (!episode) {
       throw notFound();
     }
 
     const comment = await Comment.create({ userId, episodeId, content }, { transaction: t });
     await Episode.increment('commentsCount', { by: 1, where: { id: episodeId }, transaction: t });
+    await createNotification({
+      userId: episode.userId,
+      actorId: userId,
+      type: NOTIFICATION.TYPES.COMMENT,
+      episodeId: episode.id
+    }, t);
 
     return Comment.findByPk(comment.id, { include: [AUTHOR_INCLUDE], transaction: t });
   });

@@ -1,0 +1,17 @@
+### Teste 8 (no banco)
+ERROR 1062 (23000) at line 1: Duplicate entry '5-11' for key 'idx_unique_report_user_episode'
+ERROR 1265 (01000) at line 1: Data truncated for column 'reason' at row 1
+
+### Controle (a): Report.destroy COMENTADO
+{"success":false,"message":"Cannot delete or update a parent row: a foreign key constraint fails (`podwave_db`.`reports`, CONSTRAINT `reports_ibfk_4` FOREIGN KEY (`episode_id`) REFERENCES `episodes` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE)","errors":[]}
+[HTTP 500]
+Cannot delete or update a parent row: a foreign key constraint fails (`podwave_db`.`reports`, CONSTRAINT `reports_ibfk_4` FOREIGN KEY (`episode_id`) REFERENCES `episodes` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE)
+(desfeito: linha restaurada) — limpando o episódio do teste (a):
+exclusão com o código certo: 200
+
+### Controle (b): Notification.destroy COMENTADO
+exclusão: 200
+id	user_id	actor_id	type	episode_id	is_read
+14	6	5	like	NULL	0
+orfas_depois_da_limpeza
+0

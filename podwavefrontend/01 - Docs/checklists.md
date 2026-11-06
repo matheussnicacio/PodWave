@@ -928,3 +928,64 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 - [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
 - [ ] Prints da pasta `atividade13/` *(lista no LEIA-ME)*
 - [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*
+
+---
+
+# Atividade 14 — Notificações e Denúncias
+
+## PARTE A — Backend
+### Etapa 1 — Constantes, models e associações
+- [x] `NOTIFICATION.TYPES` e `REPORT.REASONS` em `config/constants.js`; models `Notification` e `Report`; cinco associações (só `belongsTo`)
+- [x] Banco conferido: índices `idx_notification_user_read`, `idx_notification_episode`, `idx_unique_report_user_episode`, `idx_report_episode`; os dois `ENUM`; `ON DELETE SET NULL` em `notifications.episode_id` e `NO ACTION` em `reports.episode_id`
+### Etapa 2 — Módulo de notificações
+- [x] Model, service, controller e rotas, registrados no `app.js`
+- [x] `GET /api/notifications` sem token → 401
+### Etapa 3 — Módulo de denúncias
+- [x] Validator, service, controller e rotas (`isAuthenticated → reportValidator → asyncHandler`), registrados no `app.js`
+- [x] Ordem dos erros conferida: 401 → 400 (motivo) → 400 (id) → 404 → 400 (próprio) → 409
+### Etapa 4 — Revisitas
+- [x] Curtir, comentar e seguir criam o aviso dentro da transação, com o `t`; curtir e seguir o apagam ao desfazer
+- [x] Exclusão do episódio apaga denúncias e avisos antes do `destroy`
+- [x] `cors` antes do `express.json()` no `app.js`
+- [x] Teste de controle (a) e (b) feito e descrito (`atividade14/teste-controle-saida.txt`, `respostas.md` pergunta 6)
+### Etapa 5 — Testes
+- [x] Os onze testes executados com sucesso (`atividade14/testes-api-saida.txt`); recusas do banco (linha repetida e motivo fora do `ENUM`) conferidas
+- [ ] Print `.jpg` de cada curl *(feito por você)*
+
+## PARTE B — Frontend
+### Checagem de alcançabilidade (Seção 8)
+| Peça | Caminho de clique |
+|---|---|
+| Notificações | sino na Navbar (todas as telas, só logado) e item "Notificações" da Sidebar |
+| Marcar como lida | botão "Marcar como lida" na linha e clique na própria notificação |
+| Ir ao que gerou o aviso | clique no texto: episódio (curtir/comentar) ou perfil (seguir) |
+| Mais antigas / novas | "Carregar mais notificações" no fim / "Atualizar" no topo |
+| Denunciar | botão "Denunciar" no detalhe (visitante → login → volta; o dono não vê) |
+
+- [x] Router: `/notifications` existe, com `requiresAuth` e `name: 'notifications'` (o mesmo do sino); o placeholder foi substituído pela tela
+- [x] **Decisão de escopo (lacuna conhecida):** a lista de notificações não se atualiza sozinha; só o número do sino. Para ver as novas, "Atualizar"
+### Etapa 1 — Constantes, services e store
+- [x] `NOTIFICATIONS.POLL_MS`, `NOTIFICATION_TEXT`, `REPORT_REASONS`; `notificationService` e `reportService` (`silent: true`)
+- [x] `stores/notifications.js` com `refresh`, `setUnreadCount`, `refreshIfVisible`, `startPolling`, `stopPolling`; `removeEventListener` com a mesma referência (`refreshIfVisible`)
+- [x] Lógica conferida com o serviço simulado: um só temporizador após vários `startPolling`; aba escondida sem requisições; uma imediata ao voltar; nada após o logout; corrida (resposta velha descartada); desfazer relativo
+### Etapa 2 — Sino
+- [x] Sino só para logado, selo só com não lidas (99+), `aria-label` com o número; `watch(isAuthenticated, …, { immediate: true })` e `onUnmounted`
+- [ ] Conferir no navegador: número muda sozinho; um temporizador após logins/logouts; nada ao sair *(feito por você)*
+### Etapa 3 — Tela de notificações
+- [x] `usePaginatedList` (ganhou `reload` para o "Atualizar"), "Carregar mais", estado vazio, não lidas em destaque
+- [x] Marcar como lida com `runOptimistic` (sem alterar `utils/optimistic.js`), cerca por linha (`busyIds`), desfazer relativo, clique no texto marca e navega
+- [ ] Slow 4G / Offline / clique duplo / duas linhas falhando *(feito por você)*
+### Etapa 4 — Denúncia e logout
+- [x] `ReportEpisodeModal` com os cinco rádios, motivo obrigatório sem requisição, erro da API dentro do modal, toast de sucesso no pai
+- [x] "Denunciar" com `v-if="!isOwner"` e a cerca do `useAuthenticatedAction`
+- [x] Logout com `undefined` no 2º argumento
+- [x] Extra: um 401 agora também limpa a sessão da store (antes, só o `localStorage`), então o sino para e a Navbar volta ao modo visitante na sessão expirada
+- [ ] Console limpo ao sair *(conferir no navegador)*
+### Etapa 5
+- [ ] Os nove passos de clique em clique *(feito por você)*
+- [x] `npm run build` sem erros
+
+## Entrega
+- [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
+- [ ] Prints da pasta `atividade14/` *(lista no LEIA-ME)*
+- [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*

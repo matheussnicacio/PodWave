@@ -9,6 +9,8 @@ const Comment = require('../comment/commentModel');
 const Follow = require('../follow/followModel');
 const Playlist = require('../playlist/playlistModel');
 const PlaylistEpisode = require('../playlist/playlistEpisodeModel');
+const Notification = require('../notification/notificationModel');
+const Report = require('../report/reportModel');
 const { PAGINATION } = require('../../config/constants');
 
 const AUDIO_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'episodes', 'audio');
@@ -240,6 +242,16 @@ async function deleteEpisode(episodeId, userId) {
       });
       await PlaylistEpisode.destroy({ where: { episodeId: episode.id }, transaction: t });
     }
+
+    // Aula 14 — denúncias e avisos do episódio, ANTES do destroy (filhas antes
+    // do pai). Os dois por motivos diferentes:
+    //  - reports.episode_id é ON DELETE NO ACTION: sem esta linha, o banco
+    //    RECUSA apagar o episódio (500, "a foreign key constraint fails").
+    //  - notifications.episode_id é ON DELETE SET NULL: sem esta linha, a
+    //    exclusão "funciona", mas os avisos sobram com episode_id NULL —
+    //    "curtiu o seu episódio" sem episódio nenhum.
+    await Report.destroy({ where: { episodeId: episode.id }, transaction: t });
+    await Notification.destroy({ where: { episodeId: episode.id }, transaction: t });
 
     await episode.destroy({ transaction: t });
     await User.decrement('episodesCount', { by: 1, where: { id: userId }, transaction: t });

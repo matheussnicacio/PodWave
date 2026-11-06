@@ -1,12 +1,34 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
 import { useClickOutside } from '../../composables/useClickOutside'
 import { getProfilePictureUrl } from '../../utils/media'
+import { useNotificationsStore } from '../../stores/notifications'
 
 const router = useRouter()
 const { user, isAuthenticated, logout } = useAuth()
+
+// Sino (Aula 14). O número vem da store; quem LIGA e DESLIGA o polling é este
+// watch: entrou na conta -> startPolling(); saiu -> stopPolling().
+// immediate: true cobre quem abre o site já logado (F5).
+const notificationsStore = useNotificationsStore()
+const unreadCount = computed(() => notificationsStore.unreadCount)
+const unreadBadge = computed(() => (unreadCount.value > 99 ? '99+' : String(unreadCount.value)))
+const bellLabel = computed(() => (unreadCount.value > 0
+  ? `Notificações (${unreadCount.value} não ${unreadCount.value === 1 ? 'lida' : 'lidas'})`
+  : 'Notificações'))
+
+watch(
+  isAuthenticated,
+  (loggedIn) => {
+    if (loggedIn) notificationsStore.startPolling()
+    else notificationsStore.stopPolling()
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => notificationsStore.stopPolling())
 
 // O menu é controlado por ESTADO (isMenuOpen + v-if), não por CSS :hover:
 // no celular não existe hover, e :hover fecharia o menu no meio do caminho
@@ -74,6 +96,22 @@ async function handleLogout() {
 
       <template v-if="isAuthenticated">
         <router-link to="/upload"><i class="bi bi-upload"></i> Publicar</router-link>
+
+        <!-- Sino: só para quem está logado. O selo só aparece com não lidas;
+             o aria-label diz o número para quem usa leitor de tela. -->
+        <router-link
+          :to="{ name: 'notifications' }"
+          class="btn btn-sm btn-outline-secondary position-relative bell-button"
+          :aria-label="bellLabel"
+          :title="bellLabel"
+        >
+          <i class="bi bi-bell"></i>
+          <span
+            v-if="unreadCount > 0"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger"
+            aria-hidden="true"
+          >{{ unreadBadge }}</span>
+        </router-link>
 
         <div ref="menuRef" class="user-menu">
           <button
@@ -154,6 +192,10 @@ nav a {
 nav a.router-link-active {
   opacity: 1;
   font-weight: 600;
+}
+
+.bell-button {
+  opacity: 1;
 }
 
 .navbar-search {

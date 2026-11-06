@@ -8,6 +8,8 @@ import { formatCount } from '../../utils/format'
 import LikeButton from '../../components/episodes/LikeButton.vue'
 import CommentSection from '../../components/episodes/CommentSection.vue'
 import AddToPlaylistModal from '../../components/playlists/AddToPlaylistModal.vue'
+import ReportEpisodeModal from '../../components/episodes/ReportEpisodeModal.vue'
+import { useToast } from '../../composables/useToast'
 import { useAuthenticatedAction } from '../../composables/useAuthenticatedAction'
 
 const route = useRoute()
@@ -44,6 +46,21 @@ const isSaving = ref(false)
 
 function openSaveModal() {
   runAuthenticated(() => { isSaving.value = true })
+}
+
+// Botão "Denunciar" (Aula 14): a mesma cerca do "Salvar" (visitante -> login
+// -> volta ao episódio). Invisível para o dono (v-if="!isOwner" no template):
+// a API também recusa (400), esconder é só para não oferecer um botão inútil.
+const toast = useToast()
+const isReporting = ref(false)
+
+function openReportModal() {
+  runAuthenticated(() => { isReporting.value = true })
+}
+
+function handleReported() {
+  isReporting.value = false
+  toast.success('Denúncia enviada. A moderação vai revisar este episódio.')
 }
 </script>
 
@@ -99,9 +116,18 @@ function openSaveModal() {
           <button type="button" class="btn btn-outline-primary btn-sm" @click="openSaveModal">
             <i class="bi bi-bookmark-plus"></i> Salvar
           </button>
+          <button v-if="!isOwner" type="button" class="btn btn-outline-danger btn-sm" @click="openReportModal">
+            <i class="bi bi-flag"></i> Denunciar
+          </button>
         </div>
 
         <AddToPlaylistModal v-if="isSaving" :episode-id="episode.id" @close="isSaving = false" />
+        <ReportEpisodeModal
+          v-if="isReporting"
+          :episode-id="episode.id"
+          @close="isReporting = false"
+          @reported="handleReported"
+        />
 
         <p v-if="episode.description">{{ episode.description }}</p>
 

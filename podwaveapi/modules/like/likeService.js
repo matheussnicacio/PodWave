@@ -3,6 +3,8 @@ const { UniqueConstraintError } = require('sequelize');
 const Like = require('./likeModel');
 const Episode = require('../episode/episodeModel');
 const User = require('../user/userModel');
+const { createNotification, removeNotification } = require('../notification/notificationService');
+const { NOTIFICATION } = require('../../config/constants');
 
 function notFound() {
   const error = new Error('Episódio não encontrado.');
@@ -21,8 +23,10 @@ function assertValidId(episodeId) {
 /**
  * Alterna a curtida de `userId` no episódio `episodeId`.
  *
- * Escrita DUPLA (linha em `likes` + contador em `episodes.likes_count`): as
- * duas coisas precisam acontecer juntas ou nenhuma. Por isso ficam dentro de
+ * TRÊS escritas (linha em `likes` + contador em `episodes.likes_count` + o
+ * aviso em `notifications` para o dono do episódio): as três precisam
+ * acontecer juntas ou nenhuma. Curtir cria o aviso; descurtir o apaga (um
+ * aviso de uma curtida que não existe mais seria mentira). Por isso ficam dentro de
  * sequelize.transaction. ATENÇÃO: todo comando dentro da transação recebe
  * { transaction: t }. Sem isso, o comando esquecido roda FORA da transação,
  * em outra conexão — não é desfeito por um rollback e nem enxerga o que a
@@ -45,7 +49,7 @@ async function toggleLike(userId, episodeId) {
       // leriam todos "já curtiu", todos decrementariam o contador, mas só um
       // DELETE removeria a linha — o contador ficaria negativo (testado: -2).
       const episode = await Episode.findByPk(episodeId, {
-        attributes: ['id'],
+        attributes: ['id', 'userId'],
         transaction: t,
         lock: t.LOCK.UPDATE
       });
@@ -63,10 +67,24 @@ async function toggleLike(userId, episodeId) {
           throw new UniqueConstraintError({ message: 'Curtida já alterada por outra requisição.' });
         }
         await Episode.decrement('likesCount', { by: 1, where: { id: episodeId }, transaction: t });
+        await removeNotification({
+          userId: episode.userId,
+          actorId: userId,
+          type: NOTIFICATION.TYPES.LIKE,
+          episodeId: episode.id
+        }, t);
         liked = false;
       } else {
         await Like.create({ userId, episodeId }, { transaction: t });
         await Episode.increment('likesCount', { by: 1, where: { id: episodeId }, transaction: t });
+        // Destinatário: o DONO do episódio; quem agiu: quem curtiu. O `t` é
+        // obrigatório (sem ele: "Lock wait timeout exceeded" depois de ~50 s).
+        await createNotification({
+          userId: episode.userId,
+          actorId: userId,
+          type: NOTIFICATION.TYPES.LIKE,
+          episodeId: episode.id
+        }, t);
         liked = true;
       }
 

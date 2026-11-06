@@ -2,6 +2,8 @@ const { UniqueConstraintError, Op } = require('sequelize');
 const sequelize = require('../../config/database');
 const Follow = require('./followModel');
 const User = require('../user/userModel');
+const { createNotification, removeNotification } = require('../notification/notificationService');
+const { NOTIFICATION } = require('../../config/constants');
 
 // Só colunas públicas: password e email nunca entram nesta lista, então nunca
 // saem do banco.
@@ -37,10 +39,12 @@ async function assertUserExists(userId) {
  * erro algum. A conversão acontece na borda (parseUserId do controller); aqui
  * dentro o service confia no tipo.
  *
- * Três escritas na MESMA transação (todas com { transaction: t }):
+ * QUATRO escritas na MESMA transação (todas com { transaction: t }):
  *   1) a linha em `follows` (criada ou removida);
  *   2) users.followers_count do SEGUIDO  (sobe/desce em quem RECEBE o seguidor);
- *   3) users.following_count de QUEM SEGUE (sobe/desce em quem FAZ a ação).
+ *   3) users.following_count de QUEM SEGUE (sobe/desce em quem FAZ a ação);
+ *   4) o aviso em `notifications` para o SEGUIDO (criado ao seguir, apagado
+ *      ao deixar de seguir; sem episódio: episodeId fica null).
  *
  * @returns {{ isFollowing: boolean, followersCount: number }} — o contador de
  * seguidores do ALVO depois da operação (é o número que o perfil exibe).
@@ -84,6 +88,11 @@ async function toggleFollow(followerId, followingId) {
         // Passou a seguir: +1 seguidor no seguido, +1 "seguindo" em quem seguiu.
         await User.increment('followersCount', { by: 1, where: { id: followingId }, transaction: t });
         await User.increment('followingCount', { by: 1, where: { id: followerId }, transaction: t });
+        await createNotification({
+          userId: followingId,
+          actorId: followerId,
+          type: NOTIFICATION.TYPES.FOLLOW
+        }, t);
         isFollowing = true;
       } else {
         const removed = await Follow.destroy({ where: { id: follow.id }, transaction: t });
@@ -93,6 +102,11 @@ async function toggleFollow(followerId, followingId) {
         }
         await User.decrement('followersCount', { by: 1, where: { id: followingId }, transaction: t });
         await User.decrement('followingCount', { by: 1, where: { id: followerId }, transaction: t });
+        await removeNotification({
+          userId: followingId,
+          actorId: followerId,
+          type: NOTIFICATION.TYPES.FOLLOW
+        }, t);
         isFollowing = false;
       }
 

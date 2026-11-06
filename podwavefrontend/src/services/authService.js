@@ -12,8 +12,15 @@ export function login(payload) {
 
 export function logout() {
   // silent: o logout é best-effort (a store encerra a sessão local mesmo se
-  // falhar); sem `null` como 2º argumento, a config viraria o corpo.
-  return api.post('/logout', null, { silent: true })
+  // falhar). O 2º argumento é o CORPO: precisa ocupar o lugar para a config
+  // ir no 3º, mas com `undefined` (sem corpo), e NÃO `null`.
+  //
+  // Aula 14: com `null`, o Axios enviava o texto "null" com Content-Type
+  // application/json. O express.json() (modo strict) recusa um JSON que não é
+  // objeto/array -> 400. E como o cors vinha DEPOIS do express.json() no
+  // app.js, esse 400 saía sem Access-Control-Allow-Origin, e o Console
+  // mostrava um "erro de CORS" vermelho a cada logout.
+  return api.post('/logout', undefined, { silent: true })
 }
 
 export function getMyProfile() {
