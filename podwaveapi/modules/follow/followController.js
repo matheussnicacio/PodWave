@@ -58,7 +58,7 @@ exports.getFollowing = async (req, res) => {
 
 // GET /api/following-episodes?page=&limit= — feed de quem EU sigo.
 exports.getFollowingEpisodes = async (req, res) => {
-  const { page, limit } = parsePagination(req.query);
+  const page = Number(req.query.page) || 1; const limit = Number(req.query.limit) || 12;
   const items = await episodeService.getFollowingEpisodes(req.user.id, page, limit);
   return success(res, items);
 };

@@ -62,7 +62,7 @@ exports.updateProfile = async (req, res) => {
 // Devolve só a página pedida: um array de episódios recentes com o autor
 // populado. Array vazio ([]) significa "não há mais itens nessa página".
 exports.getFeed = async (req, res) => {
-  const { page, limit } = parsePagination(req.query);
+  const page = Number(req.query.page) || 1; const limit = Number(req.query.limit) || 12;
   const items = await episodeService.getFeedEpisodes({ page, limit });
   return success(res, items);
 };
