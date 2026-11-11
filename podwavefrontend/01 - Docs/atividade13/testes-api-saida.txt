@@ -1,0 +1,146 @@
+== 00. Preparação: contas A e B, um episódio de cada
+episódios: EA=1 EB=2
+
+== 01. Criar
+-- sem token (401)
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+-- título 'ab' (400)
+{"success":false,"message":"O título deve ter entre 3 e 100 caracteres.","errors":[{"type":"field","value":"ab","msg":"O título deve ter entre 3 e 100 caracteres.","path":"title","location":"body"}]}
+[HTTP 400]
+-- só espaços (400)
+{"success":false,"message":"O título da playlist é obrigatório.","errors":[{"type":"field","value":"","msg":"O título da playlist é obrigatório.","path":"title","location":"body"}]}
+[HTTP 400]
+-- isPublic "sim" (400)
+{"success":false,"message":"O campo isPublic deve ser true ou false.","errors":[{"type":"field","value":"sim","msg":"O campo isPublic deve ser true ou false.","path":"isPublic","location":"body"}]}
+[HTTP 400]
+-- sucesso SEM isPublic (201, isPublic:false, título sem espaços nas pontas)
+{"success":true,"message":"Playlist criada.","data":{"episodesCount":0,"id":1,"title":"Privada da A","description":null,"isPublic":false,"userId":1,"updatedAt":"2026-11-06T19:16:52.376Z","createdAt":"2026-11-06T19:16:52.376Z"}}
+[HTTP 201]
+-- sucesso COM isPublic:true (201)
+{"success":true,"message":"Playlist criada.","data":{"episodesCount":0,"id":2,"title":"Publica da A","description":"lista aberta","isPublic":true,"userId":1,"updatedAt":"2026-11-06T19:16:52.387Z","createdAt":"2026-11-06T19:16:52.387Z"}}
+[HTTP 201]
+
+== 02. Listar as minhas (a mais nova primeiro; duas criadas em < 1 s)
+criadas: 3 e depois 4 — esperado ver 4 antes de 3
+4:Desempate 2 | 3:Desempate 1 | 2:Publica da A | 1:Privada da A
+B só vê as dele (esperado 0): 0
+privada da A=1  pública da A=2  playlist do B=5
+
+== 03. Adicionar
+-- primeira vez (201, added:true, episodesCount:1)
+{"success":true,"message":"Episódio adicionado à playlist.","data":{"added":true,"episodesCount":1}}
+[HTTP 201]
+-- repetir (200, added:false, ainda 1)
+{"success":true,"message":"O episódio já estava na playlist.","data":{"added":false,"episodesCount":1}}
+[HTTP 200]
+-- episódio inexistente (404)
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+-- corpo sem episodeId (400)
+{"success":false,"message":"Identificador de episódio inválido.","errors":[]}
+[HTTP 400]
+-- episodeId "abc" (400)
+{"success":false,"message":"Identificador de episódio inválido.","errors":[]}
+[HTTP 400]
+-- playlist de outra pessoa (403)
+{"success":false,"message":"Você não tem permissão para alterar esta playlist.","errors":[]}
+[HTTP 403]
+-- playlist 99999 (404)
+{"success":false,"message":"Playlist não encontrada.","errors":[]}
+[HTTP 404]
+-- id abc na URL (400)
+{"success":false,"message":"Identificador de playlist inválido.","errors":[]}
+[HTTP 400]
+
+== 04. Remover
+contador da privada antes: 1
+-- remover (200, contador desce)
+{"success":true,"message":"Episódio removido da playlist.","data":{"removed":true,"episodesCount":0}}
+[HTTP 200]
+-- repetir (404)
+{"success":false,"message":"Este episódio não está na playlist.","errors":[]}
+[HTTP 404]
+-- playlist de outra pessoa (403)
+{"success":false,"message":"Você não tem permissão para alterar esta playlist.","errors":[]}
+[HTTP 403]
+
+== 05. Ler
+-- pública, visitante (200, isOwner:false, com owner e author, sem password)
+{"isOwner":false,"owner":{"id":1,"username":"a179399261127135","fullName":"Usuario a","profilePicture":"default-profile.png"},"episodes":[{"id":2,"title":"Episodio do B 179399261127135","author":{"id":2,"username":"b179399261127135","fullName":"Usuario b","profilePicture":"default-profile.png"}}]}
+contém 'password'? 0
+-- privada, visitante (403)
+{"success":false,"message":"Esta playlist é privada.","errors":[]}
+[HTTP 403]
+-- privada, outra conta (403)
+{"success":false,"message":"Esta playlist é privada.","errors":[]}
+[HTTP 403]
+-- privada, a dona (esperado 200 e isOwner:true): isOwner=true episodes=1
+-- 99999 (404)
+{"success":false,"message":"Playlist não encontrada.","errors":[]}
+[HTTP 404]
+-- abc (400)
+{"success":false,"message":"Identificador de playlist inválido.","errors":[]}
+[HTTP 400]
+
+== 06. Status
+-- sem token (401)
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+-- A, episódio EA (hasEpisode true só na privada)
+Desempate 2:false | Desempate 1:false | Publica da A:false | Privada da A:true
+-- episódio inexistente (404)
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+-- B vê as playlists DELE
+Playlist do B:false
+
+== 07. Excluir a playlist
+-- B tenta excluir (403)
+{"success":false,"message":"Você não tem permissão para alterar esta playlist.","errors":[]}
+[HTTP 403]
+-- A exclui (200)
+{"success":true,"message":"Playlist excluída.","data":null}
+[HTTP 200]
+-- depois (404)
+{"success":false,"message":"Playlist não encontrada.","errors":[]}
+[HTTP 404]
+-- o episódio EB continua existindo (esperado 200): 200
+   (no banco: SELECT * FROM playlist_episodes WHERE playlist_id = 6; -> nenhuma linha)
+
+== 08. Excluir um episódio que está em playlists de DUAS pessoas
+antes: A/P1=1  B=1  (esperado 1 e 1)
+depois: A/P1=0  B=0  (esperado 0 e 0)
+
+== 09. Busca
+ -> query="" podcasts=0 users=0
+?q= -> query="" podcasts=0 users=0
+?q=%20%20%20 -> query="" podcasts=0 users=0
+?q=z -> query="z" podcasts=0 users=0
+trecho do título, outra caixa (?q=zEBRA%20kap) -> Zebra Kappa 179399261127135 episodio da A / autor=a179399261127135
+trecho do username (?q=a179399261127135) -> a179399261127135
+   contém 'password'? 0
+?q=naoexiste179399261127135 -> query="naoexiste179399261127135" podcasts=0 users=0
+?q=ab&q=cd -> query="" podcasts=0 users=0
+?q[x]=1 -> query="" podcasts=0 users=0
+?q=%25%25 -> query="%%" podcasts=0 users=0
+?q=__ -> query="__" podcasts=0 users=0
+
+== 10. No cliente de banco (deve ser recusado com Duplicate entry ... idx_unique_playlist_episode):
+   INSERT INTO playlist_episodes (playlist_id, episode_id, created_at, updated_at) VALUES (2, 2, NOW(), NOW());
+
+== 11. Regressão
+feed: 200
+detalhe: 200
+perfil: 200
+curtir: 201
+comentar: 201
+seguir: 201
+seguidores: 200
+seguindo: 200
+feed seguindo: 200
+upload: ok
+edição: 200
+users/abc/followers (400, mesma mensagem):
+{"success":false,"message":"Identificador de usuário inválido.","errors":[]}
+[HTTP 400]

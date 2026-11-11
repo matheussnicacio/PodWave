@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useAuthenticatedAction } from '../../composables/useAuthenticatedAction'
 import { toggleLike } from '../../services/likeService'
+import { runOptimistic } from '../../utils/optimistic'
 import { formatCount } from '../../utils/format'
 
 // Botão de curtir com ATUALIZAÇÃO OTIMISTA.
@@ -45,29 +46,37 @@ watch(
   }
 )
 
+function emitChange() {
+  emit('change', { liked: liked.value, likesCount: count.value })
+}
+
+// Aula 13: os três passos agora vêm de runOptimistic (utils/optimistic.js).
+// Este botão só diz O QUE aplicar, COMO desfazer, QUAL requisição fazer e
+// COMO confirmar com o servidor. Comportamento idêntico ao de antes.
 function onClick() {
-  return run(async () => {
-    // Passo 1: guardar o estado anterior.
-    const previous = { liked: liked.value, count: count.value }
-
-    // Passo 2: aplicar já na tela.
-    liked.value = !previous.liked
-    count.value = Math.max(previous.count + (liked.value ? 1 : -1), 0)
-    emit('change', { liked: liked.value, likesCount: count.value })
-
-    try {
-      const response = await toggleLike(props.episodeId)
-      // Passo 3 (sucesso): o servidor é a fonte da verdade.
-      liked.value = response.data.liked
-      count.value = response.data.likesCount
-      emit('change', { liked: liked.value, likesCount: count.value })
-    } catch {
+  return run(() => runOptimistic({
+    apply: () => {
+      // Passo 1: guardar o estado anterior (no fechamento da função de desfazer).
+      const previous = { liked: liked.value, count: count.value }
+      // Passo 2: aplicar já na tela.
+      liked.value = !previous.liked
+      count.value = Math.max(previous.count + (liked.value ? 1 : -1), 0)
+      emitChange()
       // Passo 3 (falha): ROLLBACK. O toast de erro vem do interceptor.
-      liked.value = previous.liked
-      count.value = previous.count
-      emit('change', { liked: liked.value, likesCount: count.value })
-    }
-  })
+      return () => {
+        liked.value = previous.liked
+        count.value = previous.count
+        emitChange()
+      }
+    },
+    request: () => toggleLike(props.episodeId),
+    // Passo 3 (sucesso): o servidor é a fonte da verdade.
+    confirm: (data) => {
+      liked.value = data.liked
+      count.value = data.likesCount
+      emitChange()
+    },
+  }))
 }
 </script>
 

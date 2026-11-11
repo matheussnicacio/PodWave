@@ -21,6 +21,18 @@ export const LIMITS = {
   TITLE_MAX: 100,
   DESCRIPTION_MAX: 500,
   COMMENT_MAX: 500,
+  // Aula 13 — playlists (iguais a VALIDATION.PLAYLIST_* da API).
+  PLAYLIST_TITLE_MIN: 3,
+  PLAYLIST_TITLE_MAX: 100,
+  PLAYLIST_DESCRIPTION_MAX: 500,
+}
+
+// Busca (Aula 13). MIN_LENGTH igual ao SEARCH.MIN_LENGTH da API: abaixo disso
+// a tela nem chama a API. DEBOUNCE_MS: quanto tempo sem digitar conta como
+// "a pessoa terminou o termo" — uma requisição por pausa, não por tecla.
+export const SEARCH = {
+  MIN_LENGTH: 2,
+  DEBOUNCE_MS: 400,
 }
 
 // Tamanho de página dos feeds. Igual ao PAGINATION.DEFAULT_LIMIT da API e

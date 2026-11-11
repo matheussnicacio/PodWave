@@ -33,6 +33,18 @@ function onKeydown(event) {
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 
+// Barra de busca (Aula 13): Enter (ou a lupa) leva à tela de busca já com o
+// termo na URL (?q=). Vazio é ignorado. O campo é limpo depois: a busca
+// continua na própria tela de Explorar, que lê o termo da URL.
+const searchText = ref('')
+
+function submitSearch() {
+  const q = searchText.value.trim()
+  if (!q) return
+  router.push({ name: 'search', query: { q } })
+  searchText.value = ''
+}
+
 async function handleLogout() {
   closeMenu()
   await logout()
@@ -45,7 +57,20 @@ async function handleLogout() {
     <router-link to="/" class="brand">PodWave</router-link>
     <nav>
       <router-link to="/feed"><i class="bi bi-house"></i> Feed</router-link>
-      <router-link to="/search"><i class="bi bi-search"></i> Buscar</router-link>
+      <!-- Visível também para visitantes: buscar não exige login. -->
+      <form role="search" class="navbar-search" @submit.prevent="submitSearch">
+        <input
+          v-model="searchText"
+          type="search"
+          class="form-control form-control-sm"
+          placeholder="Buscar episódios e pessoas"
+          aria-label="Buscar episódios e pessoas"
+          maxlength="100"
+        />
+        <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Buscar">
+          <i class="bi bi-search"></i>
+        </button>
+      </form>
 
       <template v-if="isAuthenticated">
         <router-link to="/upload"><i class="bi bi-upload"></i> Publicar</router-link>
@@ -80,6 +105,9 @@ async function handleLogout() {
             </router-link>
             <router-link to="/liked" role="menuitem" @click="closeMenu">
               <i class="bi bi-heart"></i> Curtidos
+            </router-link>
+            <router-link to="/my-playlists" role="menuitem" @click="closeMenu">
+              <i class="bi bi-collection-play"></i> Minhas Playlists
             </router-link>
             <hr class="my-1" />
             <button type="button" class="menu-logout" role="menuitem" @click="handleLogout">
@@ -126,6 +154,21 @@ nav a {
 nav a.router-link-active {
   opacity: 1;
   font-weight: 600;
+}
+
+.navbar-search {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.navbar-search input {
+  width: 220px;
+}
+
+@media (max-width: 720px) {
+  .navbar-search input {
+    width: 140px;
+  }
 }
 
 /* Wrapper com position: relative: o dropdown (absolute) se ancora nele e

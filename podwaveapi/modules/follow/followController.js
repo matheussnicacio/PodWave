@@ -1,33 +1,21 @@
 const followService = require('./followService');
 const episodeService = require('../episode/episodeService');
 const { parsePagination } = require('../../utils/pagination');
+const { parseId } = require('../../utils/parseId');
 const { success } = require('../../middlewares/apiResponse');
 
-// Converte req.params.userId (SEMPRE string) em número e recusa o que não for
-// um inteiro positivo com 400.
+// Ids da URL são convertidos por utils/parseId (Aula 13): a mesma regra e a
+// mesma mensagem ("Identificador de usuário inválido.") que a antiga função
+// local parseUserId, agora compartilhada com o módulo de playlists.
 //
-// Por que aqui, na borda: req.user.id vem do JWT como NÚMERO e
-// req.params.userId vem da URL como STRING. Com `followerId === followingId`
-// o Node compara tipo e valor: `5 === "5"` é false. Sem a conversão, a checagem
-// "não pode seguir a si mesmo" NUNCA dispara e a pessoa se segue sem erro
-// nenhum. Convertendo uma vez, na entrada, todo o resto do código (service,
-// banco) trabalha só com número.
-function parseUserId(raw) {
-  const text = String(raw);
-  const id = Number(text);
-
-  if (!/^\d+$/.test(text) || !Number.isSafeInteger(id) || id < 1) {
-    const error = new Error('Identificador de usuário inválido.');
-    error.status = 400;
-    throw error;
-  }
-  return id;
-}
+// Por que converter aqui, na borda: req.user.id vem do JWT como NÚMERO e
+// req.params.userId vem da URL como STRING; `5 === "5"` é false, e a checagem
+// "não pode seguir a si mesmo" nunca dispararia sem a conversão.
 
 // POST /api/users/:userId/toggle-follow
 // 201 quando passou a seguir; 200 quando deixou de seguir.
 exports.toggleFollow = async (req, res) => {
-  const followingId = parseUserId(req.params.userId);
+  const followingId = parseId(req.params.userId, 'usuário');
   const result = await followService.toggleFollow(req.user.id, followingId);
   return success(
     res,
@@ -39,20 +27,20 @@ exports.toggleFollow = async (req, res) => {
 
 // GET /api/users/:userId/follow-status
 exports.getFollowStatus = async (req, res) => {
-  const targetId = parseUserId(req.params.userId);
+  const targetId = parseId(req.params.userId, 'usuário');
   const isFollowing = await followService.getFollowStatus(req.user.id, targetId);
   return success(res, { isFollowing });
 };
 
 // GET /api/users/:userId/followers (pública)
 exports.getFollowers = async (req, res) => {
-  const users = await followService.getFollowers(parseUserId(req.params.userId));
+  const users = await followService.getFollowers(parseId(req.params.userId, 'usuário'));
   return success(res, users);
 };
 
 // GET /api/users/:userId/following (pública)
 exports.getFollowing = async (req, res) => {
-  const users = await followService.getFollowing(parseUserId(req.params.userId));
+  const users = await followService.getFollowing(parseId(req.params.userId, 'usuário'));
   return success(res, users);
 };
 

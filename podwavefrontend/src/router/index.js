@@ -40,6 +40,21 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
+  // Aula 13 — playlists. A LISTA é só da pessoa logada (requiresAuth); o
+  // DETALHE é público (sem requiresAuth): uma playlist pública pode ser aberta
+  // por link, inclusive por visitante. A API decide (403) quando é privada.
+  {
+    path: '/my-playlists',
+    name: 'my-playlists',
+    component: () => import('../views/playlists/MyPlaylistsView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/playlists/:id',
+    name: 'playlist-detail',
+    component: () => import('../views/playlists/PlaylistDetailView.vue')
+  },
+
   {
     path: '/profile',
     name: 'my-profile',

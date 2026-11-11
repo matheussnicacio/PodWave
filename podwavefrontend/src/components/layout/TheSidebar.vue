@@ -12,8 +12,11 @@ const { isAuthenticated, isAdmin } = useAuth()
 
 <template>
   <aside class="sidebar">
+    <!-- Aula 13: "Explorar" leva à busca e vale para todos (buscar não exige login). -->
+    <router-link to="/search"><i class="bi bi-compass"></i> Explorar</router-link>
     <template v-if="isAuthenticated">
       <router-link to="/my-podcasts"><i class="bi bi-mic"></i> Meus Podcasts</router-link>
+      <router-link to="/my-playlists"><i class="bi bi-collection-play"></i> Minhas Playlists</router-link>
       <router-link to="/following"><i class="bi bi-people"></i> Seguindo</router-link>
       <router-link to="/liked"><i class="bi bi-heart"></i> Curtidos</router-link>
       <router-link to="/notifications"><i class="bi bi-bell"></i> Notificações</router-link>

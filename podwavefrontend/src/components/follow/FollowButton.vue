@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthenticatedAction } from '../../composables/useAuthenticatedAction'
 import { toggleFollow } from '../../services/followService'
+import { runOptimistic } from '../../utils/optimistic'
 
 // Botão de seguir com ATUALIZAÇÃO OTIMISTA (mesmos três passos do LikeButton:
 // guardar o estado anterior -> aplicar na tela e chamar a API -> na resposta,
@@ -29,36 +30,44 @@ const followersCount = defineModel('followersCount', { type: Number, default: 0 
 // composable; o toast de erro vem do interceptor. Aqui o catch só desfaz o visual.
 const { run, isBusy } = useAuthenticatedAction()
 
+// Aula 13: os três passos agora vêm de runOptimistic (utils/optimistic.js).
+// O que muda em relação ao LikeButton: o estado mora no PAI (defineModel) e a
+// resposta só pode escrever se a tela ainda mostra a MESMA pessoa.
 function onClick() {
-  return run(async () => {
+  return run(() => {
     // Pessoa a quem este clique se refere: se a rota mudar para outro perfil
     // enquanto a requisição voa, a resposta NÃO pode escrever no perfil novo.
     const targetId = props.userId
 
-    // Passo 1: guardar o estado anterior.
-    const previous = { following: following.value, count: followersCount.value }
+    return runOptimistic({
+      apply: () => {
+        // Passo 1: guardar o estado anterior.
+        const previous = { following: following.value, count: followersCount.value }
 
-    // ARMADILHA do defineModel: atribuir `following.value = x` NÃO atualiza a
-    // leitura na mesma hora (só depois que o pai processa o update:). Por isso
-    // o novo estado é calculado numa variável LOCAL e é ela que decide o contador.
-    const nowFollowing = !previous.following
+        // ARMADILHA do defineModel: atribuir `following.value = x` NÃO atualiza a
+        // leitura na mesma hora (só depois que o pai processa o update:). Por isso
+        // o novo estado é calculado numa variável LOCAL e é ela que decide o contador.
+        const nowFollowing = !previous.following
 
-    // Passo 2: aplicar já na tela (botão e contador do cartão, juntos).
-    following.value = nowFollowing
-    followersCount.value = Math.max(previous.count + (nowFollowing ? 1 : -1), 0)
+        // Passo 2: aplicar já na tela (botão e contador do cartão, juntos).
+        following.value = nowFollowing
+        followersCount.value = Math.max(previous.count + (nowFollowing ? 1 : -1), 0)
 
-    try {
-      const response = await toggleFollow(targetId)
-      if (props.userId !== targetId) return
+        // Passo 3 (falha): ROLLBACK. O toast de erro vem do interceptor.
+        return () => {
+          if (props.userId !== targetId) return
+          following.value = previous.following
+          followersCount.value = previous.count
+        }
+      },
+      request: () => toggleFollow(targetId),
       // Passo 3 (sucesso): o servidor é a fonte da verdade.
-      following.value = response.data.isFollowing
-      followersCount.value = response.data.followersCount
-    } catch {
-      if (props.userId !== targetId) return
-      // Passo 3 (falha): ROLLBACK. O toast de erro vem do interceptor.
-      following.value = previous.following
-      followersCount.value = previous.count
-    }
+      confirm: (data) => {
+        if (props.userId !== targetId) return
+        following.value = data.isFollowing
+        followersCount.value = data.followersCount
+      },
+    })
   })
 }
 </script>

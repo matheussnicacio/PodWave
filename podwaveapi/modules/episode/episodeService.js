@@ -7,6 +7,8 @@ const User = require('../user/userModel');
 const Like = require('../like/likeModel');
 const Comment = require('../comment/commentModel');
 const Follow = require('../follow/followModel');
+const Playlist = require('../playlist/playlistModel');
+const PlaylistEpisode = require('../playlist/playlistEpisodeModel');
 const { PAGINATION } = require('../../config/constants');
 
 const AUDIO_UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads', 'episodes', 'audio');
@@ -218,6 +220,27 @@ async function deleteEpisode(episodeId, userId) {
   await sequelize.transaction(async (t) => {
     await Like.destroy({ where: { episodeId: episode.id }, transaction: t });
     await Comment.destroy({ where: { episodeId: episode.id }, transaction: t });
+
+    // Aula 13 — playlists. O ON DELETE CASCADE da junção apagaria as linhas
+    // sozinho, mas NÃO desconta playlists.episodes_count (um contador
+    // desnormalizado, que só o código conhece). Por isso: achar as playlists
+    // que contêm o episódio, descontar 1 de cada uma e apagar as linhas —
+    // tudo na mesma transação da exclusão.
+    const playlistLinks = await PlaylistEpisode.findAll({
+      where: { episodeId: episode.id },
+      attributes: ['playlistId'],
+      transaction: t
+    });
+    const affectedPlaylistIds = playlistLinks.map((link) => link.playlistId);
+    if (affectedPlaylistIds.length > 0) {
+      await Playlist.decrement('episodesCount', {
+        by: 1,
+        where: { id: affectedPlaylistIds },
+        transaction: t
+      });
+      await PlaylistEpisode.destroy({ where: { episodeId: episode.id }, transaction: t });
+    }
+
     await episode.destroy({ transaction: t });
     await User.decrement('episodesCount', { by: 1, where: { id: userId }, transaction: t });
   });

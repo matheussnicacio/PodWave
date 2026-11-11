@@ -24,7 +24,13 @@ module.exports = {
     // Comentário (commentModel.js define content como DataTypes.STRING(500)).
     // Constante própria, pelo mesmo motivo de BIO_MAX: cada campo muda de
     // tamanho de forma independente.
-    COMMENT_MAX: 500
+    COMMENT_MAX: 500,
+    // Aula 13 — playlists (a "coleção" do PodWave: o usuário junta episódios
+    // de qualquer pessoa numa lista própria). Constantes próprias, pelo mesmo
+    // motivo de BIO_MAX: o título da playlist não é o título do episódio.
+    PLAYLIST_TITLE_MIN: 3,
+    PLAYLIST_TITLE_MAX: 100,
+    PLAYLIST_DESCRIPTION_MAX: 500
   },
   // Paginação dos feeds (GET /api/feed e GET /api/following-episodes).
   // Fonte ÚNICA do "tamanho de página": nenhum Service ou Controller escreve
@@ -35,5 +41,13 @@ module.exports = {
     DEFAULT_PAGE: 1,
     DEFAULT_LIMIT: 12,
     MAX_LIMIT: 50
+  },
+  // Busca global (GET /api/search?q=). MIN_LENGTH evita consultar o banco
+  // com 1 letra (devolveria quase tudo); MAX_LENGTH corta textos enormes
+  // antes de virarem um LIKE caro; LIMIT é o teto de itens por lista.
+  SEARCH: {
+    MIN_LENGTH: 2,
+    MAX_LENGTH: 100,
+    LIMIT: 10
   }
 };
