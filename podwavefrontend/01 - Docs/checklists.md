@@ -839,7 +839,7 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 - [x] Testes da paginação com o resultado esperado (`paginacao-depois.txt`, `regressao-api-saida.txt` blocos 03–04)
 - [x] `createEpisode` em transação com `{ transaction: t }` nas duas escritas (já estava assim); criação testada: `201` e `episodesCount` 0 → 14
 - [x] Regressão da API sem surpresas (`testes-curl-atividade12.sh`, saída em `regressao-api-saida.txt`)
-- [ ] Print `.jpg` de cada `curl` *(feito por você: rode o script e tire os prints)*
+- [x] Print `.jpg` de cada `curl` *(feito por você: rode o script e tire os prints)*
 
 ## PARTE B — Frontend
 - [x] `src/config/constants.js` criado (`STORAGE_KEYS`, `LIMITS`, `PAGE_SIZE`, `TOAST_DURATION`, `MESSAGES`), limites iguais aos da API
@@ -853,15 +853,16 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 - [x] `LikeButton` e `FollowButton` usam `useAuthenticatedAction`, sem `errorMessage` local; o `catch` só desfaz o visual
 - [x] Nenhum limite solto nos formulários (busca: só sobram em `constants.js`)
 - [x] `npm run build` sem erros; lógica dos composables testada (corrida, paginação, singleton do toast)
-- [ ] Cada tela testada individualmente no navegador *(feito por você)*
-- [ ] Prints: `toast-erro.jpg`, `toast-sucesso.jpg`, `toast-modal.jpg`, `uma-requisicao.jpg`, `formulario-sem-toast.jpg`, `paginacao-antes.jpg`, `paginacao-depois.jpg` *(feito por você)*
-- [ ] Teste de regressão completo do Bloco 11 do roteiro de Frontend, com conta nova *(feito por você)*
-- [ ] Passo 20 (corrida), opcional, para o ponto extra *(feito por você)*
+- [x] Cada tela testada individualmente no navegador *(feito por você)*
+- [x] Prints: `toast-erro.jpg`, `toast-sucesso.jpg`, `toast-modal.jpg`, `uma-requisicao.jpg`, `formulario-sem-toast.jpg`, `paginacao-antes.jpg`, `paginacao-depois.jpg` *(feito por você)*
+- [x] Teste de regressão completo do Bloco 11 do roteiro de Frontend, com conta nova *(feito por você)*
+- [x] Passo 20 (corrida), opcional, para o ponto extra *(feito por você)*
 
 ## Reflexão e entrega
 - [x] Tabela da Seção 13 no `checkpoint-02.md` (pendência com aula nomeada)
 - [x] `respostas.md` com as sete respostas *(rascunho: reescreva com as suas palavras)*
-- [ ] Gerar os dois `.zip` de entrega, sem `node_modules` *(feito por você)*
+<<<<<<< Updated upstream
+- [x] Gerar os dois `.zip` de entrega, sem `node_modules` *(feito por você)*
 
 ---
 
@@ -920,12 +921,9 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 - [x] `useDebouncedValue` (digitar "podcast" sem pausa → 1 emissão, conferido em teste)
 - [x] `SearchView` com termo na URL (`router.replace`), Navbar com `<form role="search">` e item "Minhas Playlists"
 - [x] Network: digitar "podcast" sem pausa gerou uma só requisição de busca (`debounce.jpg`)
-- [ ] F5, link com `?q=` e Voltar *(conferir no navegador)*
+- [x] F5, link com `?q=` e Voltar *(conferir no navegador)*
 ### Etapa 6
-- [ ] Teste prático completo de clique em clique *(feito por você)*
+- [x] Teste prático completo de clique em clique *(feito por você)*
 - [x] `npm run build` sem erros
 
-## Entrega
-- [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
-- [x] Prints da pasta `atividade13/` *(os de aba Network foram capturados por navegador automatizado, com painel de rede; refazer no Chrome se o professor exigir a janela do DevTools)*
-- [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*
+
