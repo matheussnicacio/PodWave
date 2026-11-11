@@ -1,0 +1,34 @@
+== Teste de controle (a): as três linhas do if (user.isBlocked) comentadas em middlewares/auth.js
+70:    // if (user.isBlocked) {
+71-    //   return next(httpError(BLOCKED_MESSAGE, 401));
+72-    // }
+$ curl -X PATCH http://localhost:4000/api/admin/users/3/block -H "Authorization: Bearer <token ADMIN>" -d '{"isBlocked":true}'
+{"success":true,"message":"Usuário bloqueado.","data":{"id":3,"username":"usuario_b","isBlocked":true}}
+[HTTP 200]
+$ curl http://localhost:4000/api/profile/me -H "Authorization: Bearer <token ANTIGO de B>"
+{"success":true,"message":null,"data":{"id":3,"username":"usuario_b","email":"usuario_b@podwave.com","fullName":"Bruno Barros","bio":null,"profilePicture":"default-profile.png","followersCount":0,"followingCount":0,"episodesCount":2,"isAdmin":false}}
+[HTTP 200]
+$ curl -X POST http://localhost:4000/api/episodes/1/toggle-like -H "Authorization: Bearer <token ANTIGO de B>"
+{"success":true,"message":"Curtida removida.","data":{"liked":false,"likesCount":1}}
+[HTTP 200]
+=> B está BLOQUEADO no banco e o token antigo continua funcionando (200/201): o bloqueio não vale até o token expirar.
+$ curl -X POST http://localhost:4000/api/login -d '{"email":"usuario_b@podwave.com",...}'  (o login ainda recusa: 403)
+{"success":false,"message":"Sua conta foi bloqueada. Entre em contato com a administração.","errors":[]} [HTTP 403]
+-- desfeito (linhas descomentadas, API reiniciada):
+{"success":false,"message":"Sua conta foi bloqueada. Entre em contato com a administração.","errors":[]}
+[HTTP 401]
+desbloquear B: 200
+
+== Teste de controle (b): isAdmin retirado da guarda em modules/admin/adminRoutes.js
+17:router.use('/admin', isAuthenticated);
+$ curl http://localhost:4000/api/admin/dashboard -H "Authorization: Bearer <token da usuario_a, conta COMUM>"
+{"success":true,"message":null,"data":{"users":4,"blockedUsers":0,"episodes":4,"comments":2,"likes":4,"pendingReports":4,"reviewedReports":1}}
+[HTTP 200]
+$ curl "http://localhost:4000/api/admin/users?limit=2" -H "Authorization: Bearer <token da usuario_a>"
+{"success":true,"message":null,"data":[{"id":4,"username":"usuario_c","email":"usuario_c@podwave.com","fullName":"Carla Costa","profilePicture":"default-profile.png","isAdmin":false,"isBlocked":false,"followersCount":0,"followingCount":0,"episodesCount":0,"createdAt":"2026-11-11T11:59:44.000Z"},{"id":3,"username":"usuario_b","email":"usuario_b@podwave.com","fullName":"Bruno Barros","profilePicture":"default-profile.p
+[HTTP 200]
+=> sem o isAdmin, QUALQUER pessoa logada lê os números do painel e os e-mails de todo mundo (200).
+-- desfeito (isAdmin de volta, API reiniciada):
+17:router.use('/admin', isAuthenticated, isAdmin);
+{"success":false,"message":"Acesso restrito a administradores.","errors":[]}
+[HTTP 403]

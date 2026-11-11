@@ -1,0 +1,144 @@
+== 00. Preparação: tokens das quatro contas (o do ADMIN é emitido ANTES da promoção)
+ids: ADMIN=1 A=2 B=3 C=4
+payload do token do ADMIN: {"id":1,"username":"admin","isAdmin":false,"iat":1794398612,"exp":1794485012}
+$ node scripts/setAdmin.js admin
+"admin" (id 1) agora é administrador.
+
+== 01. Sem token (401) e com o token de um usuário comum (403): as sete rotas + uma inexistente
+GET /admin/dashboard               sem token: 401   usuário comum (A): 403
+GET /admin/reports                 sem token: 401   usuário comum (A): 403
+PATCH /admin/reports/1/review      sem token: 401   usuário comum (A): 403
+GET /admin/users                   sem token: 401   usuário comum (A): 403
+PATCH /admin/users/3/block         sem token: 401   usuário comum (A): 403
+GET /admin/episodes                sem token: 401   usuário comum (A): 403
+DELETE /admin/episodes/1           sem token: 401   usuário comum (A): 403
+GET /admin/rota-inexistente        sem token: 401   usuário comum (A): 403
+-- corpo do 401 e do 403:
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+{"success":false,"message":"Acesso restrito a administradores.","errors":[]}
+[HTTP 403]
+
+== 02. Dashboard com o token do ADMIN emitido ANTES da promoção (o papel vem do banco)
+{"success":true,"message":null,"data":{"users":4,"blockedUsers":0,"episodes":4,"comments":2,"likes":4,"pendingReports":5,"reviewedReports":0}}
+[HTTP 200]
+sql> SELECT (SELECT COUNT(*) FROM users) users, (SELECT COUNT(*) FROM users WHERE is_blocked=1) blockedUsers, (SELECT COUNT(*) FROM episodes) episodes, (SELECT COUNT(*) FROM comments) comments, (SELECT COUNT(*) FROM likes) likes, (SELECT COUNT(*) FROM reports WHERE status='pending') pendingReports, (SELECT COUNT(*) FROM reports WHERE status='reviewed') reviewedReports;
+users	blockedUsers	episodes	comments	likes	pendingReports	reviewedReports
+4	0	4	2	4	5	0
+
+== 03. Denúncias
+-- padrão (pendentes, a mais nova primeiro):
+5:pending:other por @usuario_c em "Música Independente BR" de @usuario_b
+4:pending:harassment por @usuario_b em "Café com Código" de @usuario_a
+3:pending:inappropriate_content por @usuario_c em "Tecnologia em 15 minutos" de @usuario_a
+2:pending:copyright por @usuario_a em "Histórias do Cerrado" de @usuario_b
+1:pending:spam por @usuario_c em "Histórias do Cerrado" de @usuario_b
+-- chaves da primeira linha: id, reason, status, reviewedAt, createdAt, episodeId, Reporter, episode
+-- Reporter: id, username, fullName, profilePicture
+-- contém password/email/isAdmin? 0
+-- ?status=all: 5 denúncias   ?status=reviewed: 0
+-- ?status=xyz:
+{"success":false,"message":"Filtro de situação inválido. Use pending, reviewed ou all.","errors":[{"type":"field","value":"xyz","msg":"Filtro de situação inválido. Use pending, reviewed ou all.","path":"status","location":"query"}]}
+[HTTP 400]
+-- ?limit=1&page=2: 4 (a segunda mais nova)
+
+== 04. Revisar
+-- revisar a denúncia 5:
+{"success":true,"message":"Denúncia marcada como revisada.","data":{"id":5,"status":"reviewed","reviewedAt":"2026-11-11T12:03:33.000Z"}}
+[HTTP 200]
+-- repetir (idempotente, mesmo reviewedAt):
+{"success":true,"message":"Denúncia marcada como revisada.","data":{"id":5,"status":"reviewed","reviewedAt":"2026-11-11T12:03:33.000Z"}}
+[HTTP 200]
+-- 99999: 404   abc: 400   token comum: 403
+-- listas: pendentes=4  revisadas=5
+-- Dashboard: pendingReports=4 reviewedReports=1
+
+== 05. Usuários
+-- lista (com e-mail e flags):
+4 @usuario_c usuario_c@podwave.com admin=false bloqueado=false episódios=0
+3 @usuario_b usuario_b@podwave.com admin=false bloqueado=false episódios=2
+2 @usuario_a usuario_a@podwave.com admin=false bloqueado=false episódios=2
+1 @admin admin@podwave.com admin=true bloqueado=false episódios=0
+-- contém password? 0
+-- ?search=usuario_b: usuario_b
+-- ?search=carla (nome): usuario_c
+-- ?search=usuario_c@podwave (e-mail): usuario_c@podwave.com
+-- ?search=%25%25:
+{"success":true,"message":null,"data":[]}
+[HTTP 200]
+-- ?search=a&search=b (sem erro): 200
+
+== 06. Bloquear
+-- bloquear B:
+{"success":true,"message":"Usuário bloqueado.","data":{"id":3,"username":"usuario_b","isBlocked":true}}
+[HTTP 200]
+-- repetir: 200
+-- token ANTIGO de B em /profile/me:
+{"success":false,"message":"Sua conta foi bloqueada. Entre em contato com a administração.","errors":[]}
+[HTTP 401]
+-- login de B com a senha certa:
+{"success":false,"message":"Sua conta foi bloqueada. Entre em contato com a administração.","errors":[]}
+[HTTP 403]
+-- login de B com a senha errada:
+{"success":false,"message":"E-mail ou senha inválidos.","errors":[]}
+[HTTP 401]
+-- perfil público de B (visitante): 200
+-- desbloquear B:
+{"success":true,"message":"Usuário desbloqueado.","data":{"id":3,"username":"usuario_b","isBlocked":false}}
+[HTTP 200]
+-- o MESMO token de B volta a funcionar: 200
+-- erros: {} -> 400   "true" (texto) -> 400   a si mesmo -> 400
+-- outro administrador (C promovido só para o teste) -> 403   99999 -> 404   abc -> 400
+-- mensagens: Informe isBlocked (true ou false). | isBlocked deve ser um booleano (true ou false). | Você não pode bloquear a sua própria conta.
+
+== 07. Rebaixado: o mesmo token do ADMIN
+$ node scripts/setAdmin.js admin off
+"admin" (id 1) deixou de ser administrador.
+dashboard com o mesmo token: 403
+$ node scripts/setAdmin.js admin
+"admin" (id 1) agora é administrador.
+dashboard com o mesmo token: 200
+
+== 08. Episódios (itens)
+-- preparação: B publica um episódio; A curte (gera aviso para B); C denuncia
+episódio 5 criado
+-- lista (autor e pendingReportsCount):
+5 "Episodio para excluir pelo painel" de @usuario_b pendentes=1
+4 "Música Independente BR" de @usuario_b pendentes=0
+3 "Café com Código" de @usuario_a pendentes=1
+2 "Histórias do Cerrado" de @usuario_b pendentes=2
+1 "Tecnologia em 15 minutos" de @usuario_a pendentes=1
+sql> SELECT episode_id, COUNT(*) pendentes FROM reports WHERE status='pending' GROUP BY episode_id;
+episode_id	pendentes
+1	1
+2	2
+3	1
+5	1
+-- ?search=Cerrado: Histórias do Cerrado   ?search=%25: []
+-- ANTES:
+sql> SELECT (SELECT COUNT(*) FROM reports WHERE episode_id=5) reports, (SELECT COUNT(*) FROM notifications WHERE episode_id=5) notifications, (SELECT COUNT(*) FROM likes WHERE episode_id=5) likes, (SELECT episodes_count FROM users WHERE id=3) episodes_count_B;
+reports	notifications	likes	episodes_count_B
+1	1	1	3
+arquivos no disco: 2
+-- rota COMUM de excluir com o token do ADMIN (não é o dono):
+{"success":false,"message":"Você não tem permissão para alterar este episódio.","errors":[]}
+[HTTP 403]
+-- rota do PAINEL:
+{"success":true,"message":"Episódio excluído pela administração.","data":null}
+[HTTP 200]
+-- DEPOIS:
+sql> SELECT (SELECT COUNT(*) FROM reports WHERE episode_id=5) reports, (SELECT COUNT(*) FROM notifications WHERE episode_id=5) notifications, (SELECT COUNT(*) FROM likes WHERE episode_id=5) likes, (SELECT episodes_count FROM users WHERE id=3) episodes_count_B;
+reports	notifications	likes	episodes_count_B
+0	0	0	2
+arquivos no disco: 0
+-- repetir: 404   abc: 400
+
+== 09. Regressão
+login: 200  perfil: 200  feed: 200  seguindo: 200
+upload: episódio 6   curtir: 201  comentar: 201  seguir: 201  desfazer seguir: 200
+notificações de A: 200  não lidas: 5  denunciar: 201
+busca q=Cerrado: 1 episódio(s)   q=%25%25: {"query":"%%","podcasts":[],"users":[]}
+token lixo:
+{"success":false,"message":"Não autorizado. Token inválido ou expirado.","errors":[]}
+[HTTP 401]
+-- limpeza: excluir o episódio da regressão: 200

@@ -81,3 +81,12 @@ export const REPORT_REASONS = [
   { value: 'copyright', label: 'Violação de direitos autorais' },
   { value: 'other', label: 'Outro' },
 ]
+
+// Aula 15 — filtros da lista de denúncias do painel. Os `value` são EXATAMENTE
+// os de ADMIN.REPORT_FILTERS da API (pending | reviewed | all): é o que vai no
+// ?status=. O `label` é só da tela.
+export const REPORT_FILTERS = [
+  { value: 'pending', label: 'Pendentes' },
+  { value: 'reviewed', label: 'Revisadas' },
+  { value: 'all', label: 'Todas' },
+]

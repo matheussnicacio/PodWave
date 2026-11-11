@@ -54,7 +54,12 @@ async function removeFile(dir, filename) {
 // Carrega o episódio e aplica as duas verificações de dono, NESTA ordem:
 // 404 (existe?) antes de 403 (é seu?). Se fosse o contrário, o 403 revelaria
 // que o id existe e o 404 deixaria de ser a única resposta para "não existe".
-async function findOwnedEpisode(episodeId, userId) {
+//
+// Aula 15: `isAdmin` (padrão false) pula SÓ a checagem de dono (403): o
+// administrador pode excluir o episódio de qualquer pessoa pelo painel. O 404
+// continua valendo para todo mundo. O padrão false garante que nenhuma
+// chamada antiga ganha o poder sem pedir.
+async function findOwnedEpisode(episodeId, userId, isAdmin = false) {
   if (!/^\d+$/.test(String(episodeId))) {
     throw notFound();
   }
@@ -63,7 +68,7 @@ async function findOwnedEpisode(episodeId, userId) {
   if (!episode) {
     throw notFound();
   }
-  if (episode.userId !== userId) {
+  if (!isAdmin && episode.userId !== userId) {
     throw forbidden();
   }
   return episode;
@@ -214,8 +219,19 @@ async function updateEpisode(episodeId, userId, { title, description, newCoverFi
  * recusaria o DELETE por causa da FK). Banco primeiro, disco depois: se a
  * transação falhar, nada foi apagado e os arquivos continuam intactos.
  */
-async function deleteEpisode(episodeId, userId) {
-  const episode = await findOwnedEpisode(episodeId, userId);
+/**
+ * Exclui o episódio e tudo que depende dele (curtidas, comentários, itens de
+ * playlist, denúncias e avisos), desconta o contador do DONO e apaga os dois
+ * arquivos do disco.
+ *
+ * Aula 15: último parâmetro `isAdmin` (padrão false). A rota comum
+ * (DELETE /api/episodes/:id) chama com false: só o dono. A rota do painel
+ * (DELETE /api/admin/episodes/:id) chama com true. É a MESMA função nos dois
+ * casos — a exclusão pelo painel não tem nenhum destroy próprio, então não
+ * há como uma das duas esquecer de limpar uma das tabelas.
+ */
+async function deleteEpisode(episodeId, userId, isAdmin = false) {
+  const episode = await findOwnedEpisode(episodeId, userId, isAdmin);
 
   const { audio, cover } = episode;
 
@@ -254,7 +270,9 @@ async function deleteEpisode(episodeId, userId) {
     await Notification.destroy({ where: { episodeId: episode.id }, transaction: t });
 
     await episode.destroy({ transaction: t });
-    await User.decrement('episodesCount', { by: 1, where: { id: userId }, transaction: t });
+    // Desconta do DONO do episódio (episode.userId), não de quem pediu a
+    // exclusão: pelo painel, quem pede é o administrador.
+    await User.decrement('episodesCount', { by: 1, where: { id: episode.userId }, transaction: t });
   });
 
   await removeFile(AUDIO_UPLOADS_DIR, audio);

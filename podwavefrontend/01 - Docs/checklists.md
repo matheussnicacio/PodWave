@@ -991,3 +991,62 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 - [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
 - [x] Prints da pasta `atividade14/` *(os de DevTools foram capturados por navegador automatizado, com painel de rede/Console; refazer no Chrome se o professor exigir a janela do DevTools)*
 - [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*
+
+---
+
+# Atividade 15 — Painel de Administração
+
+## PARTE A — Backend
+### Etapa 1 — Constantes e a coluna de situação da denúncia
+- [x] `REPORT.STATUS` e `ADMIN.REPORT_FILTERS` em `config/constants.js`; `status` (`ENUM`, padrão `pending`), `reviewedAt` e o índice `idx_reports_status` no model
+- [x] Banco com `status` e `reviewed_at`; as 5 denúncias antigas ficaram `pending` (`atividade15/banco-denuncias.jpg`)
+### Etapa 2 — Autorização
+- [x] `isAuthenticated` assíncrono, consultando o banco (conta apagada/bloqueada → 401; `req.user` com o `isAdmin` do banco), e `isAdmin` (403) exportados; as rotas antigas continuam sem alteração (exportação compatível)
+- [x] Login de bloqueado → 403 (depois da senha); senha errada de um bloqueado → mensagem genérica
+- [x] `utils/escapeLike.js` (busca pública com `%%` continua vazia); `scripts/setAdmin.js` promovendo e rebaixando
+### Etapa 3 — O módulo `admin`
+- [x] `adminValidator.js`, `adminService.js`, `adminController.js` e `adminRoutes.js`, registrados no `app.js` (depois das denúncias, antes do 404)
+- [x] `GET /api/admin/dashboard` sem token → 401 (e não 404)
+- [x] A exclusão do painel reaproveita `episodeService.deleteEpisode(id, userId, true)`, sem `destroy` novo
+### Etapa 4 — Teste de controle
+- [x] (a) bloqueio comentado → token antigo de B com 200; (b) sem `isAdmin` → usuário comum com 200 no Dashboard; os dois desfeitos e descritos (`respostas.md` pergunta 8, `controle-bloqueio.jpg`, `controle-isadmin.jpg`)
+### Etapa 5 — Testes
+- [x] Os nove testes executados com sucesso (`atividade15/testes-api-saida.txt`)
+- [x] Print `.jpg` de cada curl (`curl-01-sem-token-comum.jpg` … `curl-09-regressao.jpg`)
+
+## PARTE B — Frontend
+### Checagem de alcançabilidade (Seção 8)
+| Peça | Caminho de clique |
+|---|---|
+| Painel | Sidebar → "Admin" (só administrador) → `/admin`, que redireciona para `/admin/dashboard` |
+| Denúncias | aba "Denúncias" e o cartão vermelho de pendentes do Dashboard |
+| Usuários / Episódios | as abas do painel |
+| Revisar / Bloquear / Excluir | botões na linha (bloquear e excluir abrem confirmação; desbloquear é direto) |
+| Filtrar / buscar | grupo de botões (Denúncias); campo com debounce (Usuários e Episódios) |
+| Ver o episódio / o perfil | capa ou título (Denúncias e Episódios); @usuário (Usuários) |
+
+- [x] Router: as quatro rotas `admin-*` existiam com `requiresAdmin`; os quatro placeholders existiam; o link da Sidebar já apontava para `/admin`
+- [x] **Limitação conhecida (não resolvida):** a paginação por offset pula itens quando a lista muda entre uma página e a seguinte (`pulo-paginacao.jpg`). O conserto (cursor) fica para a Aula 18
+### Etapa 1 — Constantes, service, `usePaginatedList` e `ConfirmModal`
+- [x] `REPORT_FILTERS`, `services/adminService.js` (sete chamadas, sem `silent`, PATCH de revisão sem segundo argumento), `usePaginatedList` com `{ watch }` e `lastCallId`, `ConfirmModal`
+- [x] Feed, Seguindo, Notificações e Playlists continuam abrindo e carregando
+### Etapa 2 — Layout, rotas aninhadas e guarda por papel
+- [x] `/admin` abre o Dashboard; abas com a atual destacada; telas dentro do layout (`dashboard.jpg`)
+- [x] Visitante → Login (`?redirect=`); usuário comum → Feed com aviso (`guarda-comum.jpg`)
+### Etapa 3 — Dashboard e Denúncias
+- [x] Dashboard com os cartões e o link para as denúncias; 403 no lugar dos números (`guarda-localstorage.jpg`)
+- [x] Denúncias: filtro que recarrega, motivo em português, revisar que espera a API (`denuncias-lista.jpg`, `revisar-lenta.jpg`)
+### Etapa 4 — Usuários e Episódios
+- [x] Busca com debounce (uma requisição depois da pausa) e sem perder o foco (`usuarios-busca.jpg`)
+- [x] Bloquear com confirmação; desbloquear direto (`bloquear-modal.jpg`, `bloqueado-selo.jpg`, `bloqueado-login.jpg`)
+- [x] Excluir episódio com confirmação que descreve a consequência (`itens-excluir.jpg`)
+- [ ] Cancelar e falha (Offline) mantendo o modal aberto *(conferir no navegador)*
+### Etapa 5 — Teste prático completo
+- [x] Conferidos com navegador automatizado: guarda (comum e visitante), localStorage, layout, Slow 3G e clique duplo, pulo da paginação, busca, bloqueio/login de bloqueado, confirmação de exclusão, sessão expirada → Login sem toast
+- [ ] Os nove passos em sequência, de clique em clique, nas duas janelas (ADMIN e B) *(feito por você)*: rebaixar com o painel aberto, Offline nas três ações, exclusão de verdade sumindo da aba Denúncias e da lista do dono
+- [x] `npm run build` sem erros
+
+## Entrega
+- [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
+- [x] Prints da pasta `atividade15/` *(capturados por navegador automatizado, com painel de rede abaixo; refazer no Chrome se o professor exigir a janela do DevTools)*
+- [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*

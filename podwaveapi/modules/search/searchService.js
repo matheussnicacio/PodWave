@@ -2,24 +2,13 @@ const { Op } = require('sequelize');
 const Episode = require('../episode/episodeModel');
 const User = require('../user/userModel');
 const { SEARCH } = require('../../config/constants');
+const { escapeLike } = require('../../utils/escapeLike');
 
 // Só colunas PÚBLICAS do usuário (nunca password, email, isAdmin...).
 const PUBLIC_USER_ATTRIBUTES = ['id', 'username', 'fullName', 'profilePicture'];
 
-/**
- * Escapa os curingas do LIKE: % (qualquer sequência), _ (qualquer caractere)
- * e a própria barra invertida (o caractere de escape do MySQL).
- *
- * Sem isso, quem digita "%%" monta `LIKE '%%%%'` — que casa com QUALQUER
- * texto e devolve a tabela inteira (até o LIMIT). Com o escape, "%%" vira
- * `LIKE '%\%\%%'`: procura o texto literal "%%".
- *
- * A barra entra na lista (e é escapada primeiro, pela própria classe [\\%_])
- * para que um "\" digitado não "escape" o curinga que nós mesmos adicionamos.
- */
-function escapeLike(text) {
-  return text.replace(/[\\%_]/g, '\\$&');
-}
+// Aula 15: o escapeLike saiu daqui para utils/escapeLike.js — agora a busca
+// do painel de administração também o usa (um só lugar para o escape).
 
 /** Episódios cujo título contém o termo, com o autor (só colunas públicas). */
 async function searchEpisodes(query) {

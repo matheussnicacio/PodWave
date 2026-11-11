@@ -94,6 +94,15 @@ async function loginUser(email, password) {
     throw httpError('E-mail ou senha inválidos.', 401);
   }
 
+  // Aula 15 — conta bloqueada: 403 (sei quem você é — a senha confere —, mas
+  // você não pode entrar). A checagem vem DEPOIS da senha, de propósito: se
+  // viesse antes, qualquer pessoa descobriria, só com um e-mail e uma senha
+  // qualquer, que aquela conta existe e está bloqueada. Assim, senha errada
+  // continua com a mensagem genérica, bloqueada ou não.
+  if (user.isBlocked) {
+    throw httpError('Sua conta foi bloqueada. Entre em contato com a administração.', 403);
+  }
+
   return {
     id: user.id,
     username: user.username,

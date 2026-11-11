@@ -33,7 +33,7 @@
 //    conteúdo, com "Tentar de novo"); toast aqui seria ruído duplicado;
 //  - FORMULÁRIO que falha -> é do formulário (erro no próprio form, junto dos
 //    campos); por isso os services de formulário passam `silent: true`;
-//  - 401 -> limpa a sessão e leva ao login (com aviso de sessão expirada).
+//  - 401 -> limpa a sessão e leva ao login (Aula 15: sem toast — ver abaixo).
 // "Toast para todo erro" seria erro de design: o mesmo erro apareceria duas
 // vezes (toast + tela) e erros de formulário, que pedem correção de um campo,
 // sumiriam em 6 segundos.
@@ -107,9 +107,14 @@ api.interceptors.response.use(
         // -> api -> store (ver comentário do interceptor de requisição).
         import('../stores/auth').then(({ useAuthStore }) => useAuthStore().clearSession())
 
+        // Aula 15: SEM toast aqui. O 401 agora também chega quando a conta foi
+        // BLOQUEADA (o isAuthenticated consulta o banco) e quando a sessão
+        // expirou; nos dois casos a tela de Login é o aviso, e é ela que
+        // mostra o motivo ("Sua conta foi bloqueada...") quando a pessoa
+        // tentar entrar de novo. Um toast "sessão expirada" seria mentira
+        // para quem foi bloqueado.
         const currentRoute = router.currentRoute.value
         if (currentRoute.name !== 'login') {
-          useToast().info(MESSAGES.SESSION_EXPIRED)
           router.push({ name: 'login', query: { redirect: currentRoute.fullPath } })
         }
         return Promise.reject(apiError)

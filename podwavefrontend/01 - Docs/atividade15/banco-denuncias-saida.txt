@@ -1,0 +1,39 @@
+$ mysql -u podwave -p podwave_db
+sql> SHOW CREATE TABLE reports\G
+*************************** 1. row ***************************
+       Table: reports
+Create Table: CREATE TABLE `reports` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `episode_id` int(11) NOT NULL,
+  `reason` enum('inappropriate_content','harassment','spam','copyright','other') NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `status` enum('pending','reviewed') NOT NULL DEFAULT 'pending',
+  `reviewed_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_unique_report_user_episode` (`user_id`,`episode_id`),
+  KEY `idx_report_episode` (`episode_id`),
+  KEY `idx_reports_status` (`status`),
+  CONSTRAINT `reports_ibfk_13` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  CONSTRAINT `reports_ibfk_14` FOREIGN KEY (`episode_id`) REFERENCES `episodes` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+sql> SELECT status, COUNT(*) FROM reports GROUP BY status;
++----------+----------+
+| status   | COUNT(*) |
++----------+----------+
+| pending  |        2 |
+| reviewed |        3 |
++----------+----------+
+sql> SELECT id, episode_id, reason, status, reviewed_at FROM reports ORDER BY id;
++----+------------+-----------------------+----------+---------------------+
+| id | episode_id | reason                | status   | reviewed_at         |
++----+------------+-----------------------+----------+---------------------+
+|  1 |          2 | spam                  | pending  | NULL                |
+|  2 |          2 | copyright             | pending  | NULL                |
+|  3 |          1 | inappropriate_content | reviewed | 2026-11-11 12:14:32 |
+|  4 |          3 | harassment            | reviewed | 2026-11-11 12:14:15 |
+|  5 |          4 | other                 | reviewed | 2026-11-11 12:03:33 |
++----+------------+-----------------------+----------+---------------------+
+-- logo depois do primeiro sync({ alter: true }) com a coluna nova, as 5 denúncias que já existiam ficaram 'pending' (padrão): pending | 5

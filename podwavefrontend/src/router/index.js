@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
+import { useToast } from '../composables/useToast'
 
 const routes = [
   { path: '/', name: 'landing', component: () => import('../views/LandingView.vue') },
@@ -98,29 +99,23 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
+  // Aula 15 — painel de administração: UMA rota pai com o layout (abas) e as
+  // quatro telas como FILHAS (paths relativos, sem barra: 'reports' vira
+  // /admin/reports). O `meta` fica no PAI: o Vue Router junta os meta de
+  // todos os níveis em to.meta, então as quatro filhas herdam requiresAuth e
+  // requiresAdmin sem repetir. /admin sozinho redireciona para o Dashboard
+  // (é para onde aponta o link da Sidebar). Os `name` são os mesmos de antes.
   {
     path: '/admin',
-    name: 'admin-dashboard',
-    component: () => import('../views/admin/AdminDashboardView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/reports',
-    name: 'admin-reports',
-    component: () => import('../views/admin/AdminReportsView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/users',
-    name: 'admin-users',
-    component: () => import('../views/admin/AdminUsersView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/podcasts',
-    name: 'admin-podcasts',
-    component: () => import('../views/admin/AdminPodcastsView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
+    component: () => import('../components/layout/AdminLayout.vue'),
+    redirect: { name: 'admin-dashboard' },
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: 'dashboard', name: 'admin-dashboard', component: () => import('../views/admin/AdminDashboardView.vue') },
+      { path: 'reports', name: 'admin-reports', component: () => import('../views/admin/AdminReportsView.vue') },
+      { path: 'users', name: 'admin-users', component: () => import('../views/admin/AdminUsersView.vue') },
+      { path: 'podcasts', name: 'admin-podcasts', component: () => import('../views/admin/AdminPodcastsView.vue') },
+    ],
   },
 
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') }
@@ -146,7 +141,16 @@ router.beforeEach((to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
+  // Aula 15 — guarda por PAPEL (depois da de login: o visitante vai ao Login,
+  // não ao Feed). Logado sem papel -> Feed, com aviso.
+  //
+  // ATENÇÃO: esta guarda é só CONFORTO (não mostrar uma tela que não serve
+  // para a pessoa). Ela lê o isAdmin do localStorage, que qualquer um edita no
+  // DevTools. Quem protege os DADOS é a API: o isAdmin do banco, conferido em
+  // toda requisição (router.use('/admin', isAuthenticated, isAdmin)). Com o
+  // localStorage falsificado, o painel abre vazio e cada tela recebe 403.
   if (to.meta.requiresAdmin && !isAdmin.value) {
+    useToast().error('Você não tem permissão para acessar a administração.')
     return { name: 'feed' }
   }
 

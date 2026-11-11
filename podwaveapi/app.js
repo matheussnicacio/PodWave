@@ -46,6 +46,7 @@ var followRoutes = require('./modules/follow/followRoutes');
 var playlistRoutes = require('./modules/playlist/playlistRoutes');
 var notificationRoutes = require('./modules/notification/notificationRoutes');
 var reportRoutes = require('./modules/report/reportRoutes');
+var adminRoutes = require('./modules/admin/adminRoutes');
 var errorHandler = require('./middlewares/errorHandler');
 
 var app = express();
@@ -82,6 +83,10 @@ app.use('/api', followRoutes);
 app.use('/api', playlistRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api', reportRoutes);
+// Aula 15 — painel de administração: depois das rotas de denúncia e antes do
+// 404. A guarda (isAuthenticated + isAdmin) está DENTRO do adminRoutes, numa
+// linha só (router.use('/admin', ...)).
+app.use('/api', adminRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

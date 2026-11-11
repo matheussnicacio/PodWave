@@ -64,6 +64,19 @@ module.exports = {
   // projetos; a Aula 15 lê as denúncias com esta lista). O banco guarda a
   // CHAVE; o rótulo em português é coisa da tela (front).
   REPORT: {
-    REASONS: ['inappropriate_content', 'harassment', 'spam', 'copyright', 'other']
+    REASONS: ['inappropriate_content', 'harassment', 'spam', 'copyright', 'other'],
+    // Aula 15 — situação da denúncia. Toda denúncia nasce 'pending' (o padrão
+    // do model) e vira 'reviewed' quando um administrador a revisa. Fonte
+    // ÚNICA: o ENUM do model e o service do painel leem daqui.
+    STATUS: {
+      PENDING: 'pending',
+      REVIEWED: 'reviewed'
+    }
+  },
+  // Aula 15 — painel de administração. Os filtros da lista de denúncias:
+  // as duas situações e 'all' (sem filtro). O validator recusa qualquer outro
+  // valor com 400; o front usa os MESMOS valores nos botões de filtro.
+  ADMIN: {
+    REPORT_FILTERS: ['pending', 'reviewed', 'all']
   }
 };
