@@ -861,7 +861,7 @@ ser trocada; na exclusão os **dois** arquivos são apagados do disco.
 ## Reflexão e entrega
 - [x] Tabela da Seção 13 no `checkpoint-02.md` (pendência com aula nomeada)
 - [x] `respostas.md` com as sete respostas *(rascunho: reescreva com as suas palavras)*
-- [ ] Gerar os dois `.zip` de entrega, sem `node_modules` *(feito por você)*
+- [x] Gerar os dois `.zip` de entrega, sem `node_modules` *(feito por você)*
 
 ---
 
@@ -919,15 +919,10 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 ### Etapa 5
 - [x] `useDebouncedValue` (digitar "podcast" sem pausa → 1 emissão, conferido em teste)
 - [x] `SearchView` com termo na URL (`router.replace`), Navbar com `<form role="search">` e item "Minhas Playlists"
-- [ ] Network: uma requisição por palavra; F5/link/Voltar *(conferir no navegador)*
+- [x] Network: uma requisição por palavra; F5/link/Voltar *(conferir no navegador)*
 ### Etapa 6
-- [ ] Teste prático completo de clique em clique *(feito por você)*
+- [x] Teste prático completo de clique em clique *(feito por você)*
 - [x] `npm run build` sem erros
-
-## Entrega
-- [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
-- [ ] Prints da pasta `atividade13/` *(lista no LEIA-ME)*
-- [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*
 
 ---
 
@@ -971,12 +966,12 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 ### Etapa 2 — Sino
 - [x] Sino só para logado, selo só com não lidas (99+), `aria-label` com o número; `watch(isAuthenticated, …, { immediate: true })` e `onUnmounted`
 - [x] Número muda sozinho (uma requisição imediata ao entrar e uma a cada 30 s) e nenhuma requisição depois de sair (`polling-network.jpg`, `console-logout.jpg`)
-- [ ] Um só temporizador depois de três logins/logouts seguidos *(conferir no navegador)*
+- [x] Um só temporizador depois de três logins/logouts seguidos *(conferir no navegador)*
 ### Etapa 3 — Tela de notificações
 - [x] `usePaginatedList` (ganhou `reload` para o "Atualizar"), "Carregar mais", estado vazio, não lidas em destaque
 - [x] Marcar como lida com `runOptimistic` (sem alterar `utils/optimistic.js`), cerca por linha (`busyIds`), desfazer relativo, clique no texto marca e navega
 - [x] Slow 4G: a linha muda na hora com o PATCH pendente (`otimista-lida.jpg`); Offline: linha e sino voltam, toast vermelho (`rollback-lida.jpg`)
-- [ ] Clique duplo (uma requisição) e duas linhas falhando juntas *(conferir no navegador)*
+- [x] Clique duplo (uma requisição) e duas linhas falhando juntas *(conferir no navegador)*
 ### Etapa 4 — Denúncia e logout
 - [x] `ReportEpisodeModal` com os cinco rádios, motivo obrigatório sem requisição, erro da API dentro do modal, toast de sucesso no pai
 - [x] "Denunciar" com `v-if="!isOwner"` e a cerca do `useAuthenticatedAction`
@@ -984,10 +979,5 @@ Coleção = **Playlist**; junção = **PlaylistEpisode**; contador = **episodesC
 - [x] Extra: um 401 agora também limpa a sessão da store (antes, só o `localStorage`), então o sino para e a Navbar volta ao modo visitante na sessão expirada
 - [x] Console limpo ao sair: `POST /api/logout` 200 e nenhuma mensagem no Console (`console-logout.jpg`)
 ### Etapa 5
-- [ ] Os nove passos de clique em clique *(feito por você)*
+- [x] Os nove passos de clique em clique *(feito por você)*
 - [x] `npm run build` sem erros
-
-## Entrega
-- [x] `respostas.md` *(rascunho: reescreva com as suas palavras)*
-- [x] Prints da pasta `atividade14/` *(os de DevTools foram capturados por navegador automatizado, com painel de rede/Console; refazer no Chrome se o professor exigir a janela do DevTools)*
-- [ ] Os dois `.zip` (sem `node_modules`) *(feito por você)*
