@@ -100,6 +100,13 @@ api.interceptors.response.use(
         localStorage.removeItem(STORAGE_KEYS.TOKEN)
         localStorage.removeItem(STORAGE_KEYS.USER)
 
+        // Aula 14: encerra também a sessão em MEMÓRIA (a store). Sem isto, a
+        // store continuava achando que havia login: a Navbar seguia mostrando
+        // o avatar e o sino, e o polling continuava batendo 401 a cada 30 s.
+        // Import DINÂMICO: um import no topo criaria o ciclo store -> service
+        // -> api -> store (ver comentário do interceptor de requisição).
+        import('../stores/auth').then(({ useAuthStore }) => useAuthStore().clearSession())
+
         const currentRoute = router.currentRoute.value
         if (currentRoute.name !== 'login') {
           useToast().info(MESSAGES.SESSION_EXPIRED)

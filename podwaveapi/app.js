@@ -44,18 +44,27 @@ var likeRoutes = require('./modules/like/likeRoutes');
 var commentRoutes = require('./modules/comment/commentRoutes');
 var followRoutes = require('./modules/follow/followRoutes');
 var playlistRoutes = require('./modules/playlist/playlistRoutes');
+var notificationRoutes = require('./modules/notification/notificationRoutes');
+var reportRoutes = require('./modules/report/reportRoutes');
 var errorHandler = require('./middlewares/errorHandler');
 
 var app = express();
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
+// Aula 14: o cors vem ANTES dos parsers. Se o express.json() recusar o corpo
+// (ex.: o logout mandando o texto "null", que não é um objeto JSON), ele
+// responde 400 ali mesmo e a requisição nunca chega ao cors. Sem o cabeçalho
+// Access-Control-Allow-Origin, o navegador esconde o 400 e mostra um "erro
+// de CORS" no Console. Com o cors primeiro, TODA resposta (inclusive os
+// erros dos parsers) sai com o cabeçalho, e o erro real aparece.
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Serve a pasta de uploads publicamente, em /uploads/... . Precisa vir
 // antes das rotas da API para não competir com nenhum middleware de
@@ -71,6 +80,8 @@ app.use('/api', likeRoutes);
 app.use('/api', commentRoutes);
 app.use('/api', followRoutes);
 app.use('/api', playlistRoutes);
+app.use('/api', notificationRoutes);
+app.use('/api', reportRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

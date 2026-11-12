@@ -49,5 +49,21 @@ module.exports = {
     MIN_LENGTH: 2,
     MAX_LENGTH: 100,
     LIMIT: 10
+  },
+  // Aula 14 — notificações. Os tipos são as três ações que avisam alguém:
+  // curtir e comentar (avisam o dono do episódio) e seguir (avisa quem foi
+  // seguido). Fonte ÚNICA: o ENUM do model e os services leem daqui.
+  NOTIFICATION: {
+    TYPES: {
+      LIKE: 'like',
+      COMMENT: 'comment',
+      FOLLOW: 'follow'
+    }
+  },
+  // Aula 14 — denúncias. Os cinco motivos são FIXOS (os mesmos em todos os
+  // projetos; a Aula 15 lê as denúncias com esta lista). O banco guarda a
+  // CHAVE; o rótulo em português é coisa da tela (front).
+  REPORT: {
+    REASONS: ['inappropriate_content', 'harassment', 'spam', 'copyright', 'other']
   }
 };

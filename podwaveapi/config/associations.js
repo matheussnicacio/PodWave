@@ -5,6 +5,8 @@ const Comment = require('../modules/comment/commentModel');
 const Follow = require('../modules/follow/followModel');
 const Playlist = require('../modules/playlist/playlistModel');
 const PlaylistEpisode = require('../modules/playlist/playlistEpisodeModel');
+const Notification = require('../modules/notification/notificationModel');
+const Report = require('../modules/report/reportModel');
 
 // Por que declarar a associação explicitamente para o Sequelize:
 // a FK userId já existe como coluna comum no episodeModel.js, mas, sem as
@@ -76,4 +78,22 @@ PlaylistEpisode.belongsTo(Episode, { foreignKey: 'episodeId', as: 'episode', onD
 User.hasMany(Playlist, { foreignKey: 'userId', as: 'playlists', onDelete: 'CASCADE' });
 Playlist.belongsTo(User, { foreignKey: 'userId', as: 'owner', onDelete: 'CASCADE' });
 
-module.exports = { User, Episode, Like, Comment, Follow, Playlist, PlaylistEpisode };
+// Aula 14 — notificações e denúncias. Só o sentido belongsTo (cinco
+// associações): as duas tabelas são sempre consultadas a partir delas
+// mesmas, e é o belongsTo que cria as FKs.
+//
+// SEM onDelete explícito, de propósito: o Sequelize escolhe pelo allowNull
+// da coluna, e é esse comportamento que queremos ver no banco:
+//  - notifications.episode_id (allowNull: true)  -> ON DELETE SET NULL
+//  - reports.episode_id       (allowNull: false) -> ON DELETE NO ACTION
+// Em nenhum dos dois casos o banco "limpa sozinho": a exclusão do episódio
+// apaga denúncias e avisos explicitamente (episodeService.deleteEpisode).
+//
+// Notification liga User a User (quem recebe e quem agiu): dois apelidos.
+Notification.belongsTo(User, { as: 'Recipient', foreignKey: 'userId' });
+Notification.belongsTo(User, { as: 'Actor', foreignKey: 'actorId' });
+Notification.belongsTo(Episode, { as: 'episode', foreignKey: 'episodeId' });
+Report.belongsTo(User, { as: 'Reporter', foreignKey: 'userId' });
+Report.belongsTo(Episode, { as: 'episode', foreignKey: 'episodeId' });
+
+module.exports = { User, Episode, Like, Comment, Follow, Playlist, PlaylistEpisode, Notification, Report };

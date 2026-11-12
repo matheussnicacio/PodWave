@@ -1,0 +1,113 @@
+== 00. Preparação: contas A, B, C; episódio EB do B
+ids: A=1 B=2 C=3  EB=1 EA=2
+
+== 01. Sem token: as quatro rotas -> 401
+lista: 401  unread-count: 401  marcar: 401  denunciar: 401
+
+== 02. Curtir
+B não lidas antes: 0  (esperado 0)
+A curte EB: 201  (201)
+B não lidas: 1  (esperado 1)
+-- lista do B (Actor com só colunas públicas e o episódio):
+[{"type":"like","isRead":false,"Actor":{"id":1,"username":"a179398998221998","fullName":"Usuario a","profilePicture":"default-profile.png"},"episode":{"id":1,"title":"Episodio do B 179398998221998","cover":"1793989983253-433953039.jpg"}}]
+contém password/email/isAdmin? 0
+A curte o PRÓPRIO episódio EA: 201 -> A continua com 0 (esperado 0)
+A descurte EB: 200  (200) -> B: 0 (esperado 0)
+A curte de novo: 201 -> B: 1 (esperado 1, uma só)
+
+== 03. Comentar
+C comenta EB: 201 -> B: 2 (esperado 2)
+B comenta o PRÓPRIO EB: 201 -> B: 2 (esperado 2)
+
+== 04. Seguir
+A segue B: 201 -> B: 3 (esperado 3)
+aviso de follow (episodeId null): [{"actor":"a179398998221998","episodeId":null}]
+A deixa de seguir: 200 -> B: 2 (esperado 2)
+A segue de novo: 201 -> B: 3 (esperado 3)
+
+== 05. Lista
+ordem (mais nova primeiro):  5:follow:a179398998221998:ep=null:NAO_LIDA | 3:comment:c179398998221998:ep=1:NAO_LIDA | 2:like:a179398998221998:ep=1:NAO_LIDA
+?limit=1&page=2:              3:comment:c179398998221998:ep=1:NAO_LIDA
+página além do fim (?page=99) -> []
+?page=abc&limit=-5 (padrões) -> 3 itens
+C vê só as dela:   (esperado vazio)
+
+== 06. Marcar como lida
+-- outra conta (403)
+{"success":false,"message":"Você não tem permissão para alterar esta notificação.","errors":[]}
+[HTTP 403]
+-- inexistente (404)
+{"success":false,"message":"Notificação não encontrada.","errors":[]}
+[HTTP 404]
+-- abc (400)
+{"success":false,"message":"Identificador de notificação inválido.","errors":[]}
+[HTTP 400]
+-- a dona (200, unreadCount 2)
+{"success":true,"message":"Notificação marcada como lida.","data":{"id":5,"isRead":true,"unreadCount":2}}
+[HTTP 200]
+-- repetir (200, mesmo número)
+{"success":true,"message":"Notificação marcada como lida.","data":{"id":5,"isRead":true,"unreadCount":2}}
+[HTTP 200]
+lista reflete: 5:follow:a179398998221998:ep=null:lida | 3:comment:c179398998221998:ep=1:NAO_LIDA | 2:like:a179398998221998:ep=1:NAO_LIDA
+unread-count reflete: 2
+
+== 07. Denúncia
+-- A denuncia EB (201)
+{"success":true,"message":"Denúncia enviada. Obrigado por avisar a moderação.","data":{"id":1,"episodeId":1,"reason":"spam"}}
+[HTTP 201]
+-- A repete (409)
+{"success":false,"message":"Você já denunciou este episódio.","errors":[]}
+[HTTP 409]
+-- C denuncia o mesmo (201)
+{"success":true,"message":"Denúncia enviada. Obrigado por avisar a moderação.","data":{"id":2,"episodeId":1,"reason":"copyright"}}
+[HTTP 201]
+-- sem reason (400)
+{"success":false,"message":"Escolha um motivo válido para a denúncia.","errors":[{"type":"field","msg":"Escolha um motivo válido para a denúncia.","path":"reason","location":"body"}]}
+[HTTP 400]
+-- reason fora da lista (400)
+{"success":false,"message":"Escolha um motivo válido para a denúncia.","errors":[{"type":"field","value":"chato","msg":"Escolha um motivo válido para a denúncia.","path":"reason","location":"body"}]}
+[HTTP 400]
+-- o rótulo no lugar da chave (400)
+{"success":false,"message":"Escolha um motivo válido para a denúncia.","errors":[{"type":"field","value":"Spam ou golpes","msg":"Escolha um motivo válido para a denúncia.","path":"reason","location":"body"}]}
+[HTTP 400]
+-- id abc (400)
+{"success":false,"message":"Identificador de episódio inválido.","errors":[]}
+[HTTP 400]
+-- episódio 99999 (404)
+{"success":false,"message":"Episódio não encontrado.","errors":[]}
+[HTTP 404]
+-- o dono denunciando (400)
+{"success":false,"message":"Você não pode denunciar o seu próprio episódio.","errors":[]}
+[HTTP 400]
+-- sem token (401)
+{"success":false,"message":"Não autorizado. Token não informado.","errors":[]}
+[HTTP 401]
+o dono não ganhou notificação: B continua com 2 não lidas (esperado 2)
+
+== 08. No cliente de banco:
+   INSERT INTO reports (user_id, episode_id, reason, created_at, updated_at) VALUES (1, 1, 'spam', NOW(), NOW());  -> Duplicate entry ... idx_unique_report_user_episode
+   INSERT INTO reports (user_id, episode_id, reason, created_at, updated_at) VALUES (2, 2, 'chato', NOW(), NOW()); -> Data truncated for column 'reason'
+
+== 09. Excluir episódio com denúncias e curtidas/comentários de duas pessoas
+avisos do B sobre EX antes: 4 (esperado 4)
+exclusão: 200  (200)
+avisos do B sobre EX depois: 0 (esperado 0)
+avisos com episódio NULL que não são follow: 0 (esperado 0)
+   (no banco: SELECT COUNT(*) FROM reports WHERE episode_id = 3;  -> 0)
+
+== 10. O erro do logout (corpo "null"): 400 COM Access-Control-Allow-Origin
+HTTP/1.1 400 Bad Request
+Access-Control-Allow-Origin: http://localhost:5173
+{"success":false,"message":"Unexpected token 'n', \"null\" is not valid JSON","errors":[]}
+
+== 11. Regressão
+curtir: 201 / descurtir: 200  (201 / 200)
+comentar: 201
+seguir: 201  seguidores: 200  seguindo: 200
+playlists: criar 1, salvar 201, minhas 200
+busca: 200  feed: 200  feed seguindo: 200
+upload: ok
+edição: 200
+users/abc/followers:
+{"success":false,"message":"Identificador de usuário inválido.","errors":[]}
+[HTTP 400]

@@ -54,3 +54,30 @@ export const MESSAGES = {
   SESSION_EXPIRED: 'Sua sessão expirou. Entre novamente para continuar.',
   LOAD_ERROR: 'Não foi possível carregar os dados.',
 }
+
+// Aula 14 — notificações. POLL_MS: de quanto em quanto tempo o sino pergunta
+// "quantas não lidas?". 30 s é um meio-termo: rápido o bastante para o aviso
+// parecer "ao vivo", lento o bastante para não multiplicar requisições
+// (cada pessoa logada faz 2 por minuto, não 60).
+export const NOTIFICATIONS = {
+  POLL_MS: 30000,
+}
+
+// Texto de cada tipo de aviso (as chaves são os valores do ENUM da API).
+// A tela monta: "@usuario" + texto + (título do episódio, se houver).
+export const NOTIFICATION_TEXT = {
+  like: 'curtiu o seu episódio',
+  comment: 'comentou no seu episódio',
+  follow: 'começou a seguir você',
+}
+
+// Motivos de denúncia: a API e o banco guardam a CHAVE (value); a tela mostra
+// o RÓTULO (label). Os cinco são fixos e nesta ordem (iguais a REPORT.REASONS
+// da API). Se um rótulo mudar de texto, nenhum dado gravado muda junto.
+export const REPORT_REASONS = [
+  { value: 'inappropriate_content', label: 'Conteúdo impróprio' },
+  { value: 'harassment', label: 'Assédio ou discurso de ódio' },
+  { value: 'spam', label: 'Spam ou golpes' },
+  { value: 'copyright', label: 'Violação de direitos autorais' },
+  { value: 'other', label: 'Outro' },
+]

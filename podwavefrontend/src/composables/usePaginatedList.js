@@ -20,18 +20,32 @@ export function usePaginatedList(fetchPage, { pageSize = PAGE_SIZE, immediate = 
     { immediate: false, resetOnExecute: false, initialData: [] }
   )
 
-  async function loadMore() {
-    if (isLoading.value || !hasMore.value) return
+  async function fetchNextPage() {
     const nextItems = await execute()
-    if (nextItems === undefined) return // falhou: page/items ficam como estavam
+    if (nextItems === undefined) return // falhou (ou ficou obsoleta): page/items ficam como estavam
     items.value.push(...nextItems)
     page.value += 1
     hasMore.value = nextItems.length === pageSize
+  }
+
+  async function loadMore() {
+    if (isLoading.value || !hasMore.value) return
+    await fetchNextPage()
+  }
+
+  // Aula 14 — "Atualizar": recomeça da página 1 (os itens novos ficam no
+  // topo). Não espera um "Carregar mais" em andamento terminar: o lastCallId
+  // do useAsyncData descarta a resposta antiga, que chega como undefined.
+  async function reload() {
+    items.value = []
+    page.value = 0
+    hasMore.value = true
+    await fetchNextPage()
   }
 
   if (immediate) loadMore()
 
   const isEmpty = computed(() => !isLoading.value && !error.value && items.value.length === 0)
 
-  return { items, hasMore, isLoading, error, isEmpty, loadMore }
+  return { items, hasMore, isLoading, error, isEmpty, loadMore, reload }
 }

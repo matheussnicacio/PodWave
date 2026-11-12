@@ -1,0 +1,45 @@
+### Teste 8 (no banco)
+MariaDB [podwave_db]> SELECT id, user_id, episode_id, reason FROM reports;
++----+---------+------------+-----------+
+| id | user_id | episode_id | reason    |
++----+---------+------------+-----------+
+|  1 |       1 |          1 | spam      |
+|  2 |       3 |          1 | copyright |
++----+---------+------------+-----------+
+MariaDB [podwave_db]> INSERT INTO reports (user_id, episode_id, reason, created_at, updated_at) VALUES (1, 1, 'spam', NOW(), NOW());
+ERROR 1062 (23000) at line 1: Duplicate entry '1-1' for key 'idx_unique_report_user_episode'
+MariaDB [podwave_db]> INSERT INTO reports (user_id, episode_id, reason, created_at, updated_at) VALUES (2, 2, 'chato', NOW(), NOW());
+ERROR 1265 (01000) at line 1: Data truncated for column 'reason' at row 1
+
+### Controle (a): Report.destroy COMENTADO
+$ grep -n "Report.destroy" modules/episode/episodeService.js
+253:    // await Report.destroy({ where: { episodeId: episode.id }, transaction: t });
+$ # episódio novo 5 do B, curtido e denunciado pela A
+$ curl -s -X POST http://localhost:4000/api/episodes/5/toggle-like -H "Authorization: Bearer $TA" -w ' [HTTP %{http_code}]'
+{"success":true,"message":"Episódio curtido.","data":{"liked":true,"likesCount":1}} [HTTP 201]
+$ curl -s -X POST http://localhost:4000/api/episodes/5/report -H "Authorization: Bearer $TA" -H "Content-Type: application/json" -d '{"reason":"spam"}' -w ' [HTTP %{http_code}]'
+{"success":true,"message":"Denúncia enviada. Obrigado por avisar a moderação.","data":{"id":7,"episodeId":5,"reason":"spam"}} [HTTP 201]
+$ curl -s -X DELETE http://localhost:4000/api/episodes/5 -H "Authorization: Bearer $TB" -w ' [HTTP %{http_code}]'
+{"success":false,"message":"Cannot delete or update a parent row: a foreign key constraint fails (`podwave_db`.`reports`, CONSTRAINT `reports_ibfk_6` FOREIGN KEY (`episode_id`) REFERENCES `episodes` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE)","errors":[]} [HTTP 500]
+
+### Controle (b): Notification.destroy COMENTADO
+$ grep -n "Notification.destroy" modules/episode/episodeService.js
+254:    // await Notification.destroy({ where: { episodeId: episode.id }, transaction: t });
+$ # episódio novo 6 do B, curtido pela A
+$ curl -s -X POST http://localhost:4000/api/episodes/6/toggle-like -H "Authorization: Bearer $TA" -w ' [HTTP %{http_code}]'
+{"success":true,"message":"Episódio curtido.","data":{"liked":true,"likesCount":1}} [HTTP 201]
+$ curl -s -X DELETE http://localhost:4000/api/episodes/6 -H "Authorization: Bearer $TB" -w ' [HTTP %{http_code}]'
+{"success":true,"message":"Episódio excluído com sucesso.","data":null} [HTTP 200]
+$ mysql -u podwave -p podwave_db -e "SELECT id, user_id, actor_id, type, episode_id, is_read FROM notifications WHERE episode_id IS NULL AND type <> 'follow';"
++----+---------+----------+------+------------+---------+
+| id | user_id | actor_id | type | episode_id | is_read |
++----+---------+----------+------+------------+---------+
+| 14 |       5 |        4 | like |       NULL |       0 |
++----+---------+----------+------+------------+---------+
+$ # desfeito (linha descomentada) — apagando a linha órfã
+$ mysql ... -e "DELETE FROM notifications WHERE episode_id IS NULL AND type <> 'follow'; SELECT COUNT(*) AS orfas FROM notifications WHERE episode_id IS NULL AND type <> 'follow';"
++-------+
+| orfas |
++-------+
+|     0 |
++-------+
